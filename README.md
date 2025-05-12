@@ -12,6 +12,7 @@
 8. [機能候補](#機能候補)
 9. [機能の実装方針予定](#機能の実装方針予定)
 10. [画面遷移図](#画面遷移図)
+10. [ER図](#ER図)
 
 ---
 
@@ -354,3 +355,9 @@
 ## ■画面遷移図
 
 [詳細はこちら](https://www.figma.com/design/9khXwIohWOBVrMmRWhwSWW/VoiceBloom?node-id=0-1&t=HjtaMJeSdq2VyYS4-1)
+
+---
+
+## ■ER図
+
+[![Image from Gyazo](https://i.gyazo.com/52bdd8b7d9c26c2f15e9e0c9b5ef5c40.png)](https://gyazo.com/52bdd8b7d9c26c2f15e9e0c9b5ef5c40)
