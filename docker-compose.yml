@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.rails
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+    stdin_open: true
+    tty: true
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/voice_bloom_development
+      RAILS_ENV: development
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload --app-dir /app/python_api
+    volumes:
+      - ./python_api:/app/python_api
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHON_ENV: development
+      # もしFastAPIからDBにアクセスする必要があれば、ここにもDATABASE_URLなどを設定
+
+volumes:
+  postgres_data:
