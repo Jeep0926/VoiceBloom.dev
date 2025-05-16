@@ -1,0 +1,37 @@
+require:
+  - rubocop-rails
+  - rubocop-performance
+  - rubocop-rspec # RSpecを使う場合
+
+AllCops:
+  NewCops: enable # 新しいCopも有効にする
+  Exclude: # RuboCopのチェック対象外とするファイル/ディレクトリ
+    - 'db/schema.rb'
+    - 'db/migrate/*'
+    - 'bin/*'
+    - 'config/initializers/*'
+    - 'config/spring.rb'
+    - 'config/environments/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'node_modules/**/*'
+    # - 'path/to/your/generated_code/**/*' # 自動生成コードなど
+
+Rails:
+  Enabled: true
+
+# よくカスタマイズされるCopの例
+Style/Documentation: # クラスやメソッドのドキュメントコメントを必須にするか
+  Enabled: false
+
+Layout/LineLength: # 1行の最大文字数
+  Max: 120
+
+Metrics/BlockLength: # ブロックの最大行数 (RSpecのdescribeなどは除外設定が必要な場合あり)
+  Exclude:
+    - 'spec/**/*_spec.rb' # RSpecファイルを除外
+    - 'config/routes.rb'
+
+# RSpec用の設定 (rubocop-rspec)
+RSpec:
+  Enabled: true

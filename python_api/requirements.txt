@@ -1,3 +1,5 @@
 fastapi
 uvicorn[standard]
 librosa
+flake8
+black
