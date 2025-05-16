@@ -1,0 +1,70 @@
+name: Lint Checks
+
+on: # ワークフローを実行するトリガー
+  push: # プッシュイベント
+    branches: # 対象ブランチ
+      - main
+      - feature/* # feature/ で始まる全てのブランチ
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  rubocop: # Rails (RuboCop) のチェック用ジョブ
+    name: RuboCop Linter
+    runs-on: ubuntu-latest # ジョブを実行する仮想環境
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4 # リポジトリのコードをチェックアウト
+
+      - name: Set up Ruby # Ruby環境のセットアップ
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3.0' # Gemfileで指定しているRubyバージョンと合わせる
+          bundler-cache: true # bundle install の結果をキャッシュし、次回以降の実行を高速化する
+
+      - name: Run RuboCop
+        run: bundle exec rubocop --parallel # --parallelで高速化
+
+  flake8: # Python (Flake8) のチェック用ジョブ
+    name: Flake8 Linter
+    runs-on: ubuntu-latest
+    defaults: # このジョブ内のデフォルト設定
+      run:
+        working-directory: ./python_api # Pythonコードがあるディレクトリに移動してコマンドを実行
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python # Python環境のセットアップ
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # requirements.txtやDockerfile.pythonと合わせる
+
+      - name: Install Python dependencies # Pythonの依存関係をインストール
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Flake8 # Flake8の実行
+        run: flake8 . # working-directory を指定しているので、カレントディレクトリ(./python_api)をチェック
+
+  black_check: # (任意) Blackのチェックも追加する場合
+    name: Black Formatter Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./python_api
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run Black Check # Blackのチェック実行 (フォーマットはしない)
+        run: black . --check
