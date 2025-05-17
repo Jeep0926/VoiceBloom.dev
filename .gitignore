@@ -29,7 +29,8 @@
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
 !/storage/.keep
-/tmp/storage/* # Rails 6以前の古い一時ストレージパス、念のため
+# Rails 6以前の古い一時ストレージパス、念のため
+/tmp/storage/*
 !/tmp/storage/
 !/tmp/storage/.keep
 
@@ -52,7 +53,8 @@
 .yarn-integrity
 
 # Ignore a local file created by the puma server.
-puma.sock # (もしPumaを直接ローカルで使う場合。Docker内なら不要かも)
+# (もしPumaを直接ローカルで使う場合。Docker内なら不要かも)
+puma.sock
 
 # Ignore .byebug_history.
 .byebug_history
@@ -62,17 +64,20 @@ puma.sock # (もしPumaを直接ローカルで使う場合。Docker内なら不
 
 # Python specific files for the python_api directory
 python_api/__pycache__/
-python_api/*.py[cod] # .pyc, .pyo, .pyd
+# .pyc, .pyo, .pyd
+python_api/*.py[cod]
 python_api/.pytest_cache/
 python_api/.mypy_cache/
 python_api/.ruff_cache/
-python_api/.venv/      # Common virtual environment directory names
+# Common virtual environment directory names
+python_api/.venv/
 python_api/env/
 python_api/venv/
 python_api/ENV/
 python_api/env.bak/
 python_api/venv.bak/
-python_api/instance/  # For Flask instance folders, if used
+# For Flask instance folders, if used
+python_api/instance/
 
 # OS-generated files
 .DS_Store
