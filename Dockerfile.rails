@@ -1,16 +1,65 @@
 ARG RUBY_VERSION=3.3.0
-FROM ruby:$RUBY_VERSION
+ARG NODE_MAJOR=20
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    build-essential \
-    libpq-dev \
-    curl \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs
+# 1. ベースイメージ (slim)
+FROM ruby:${RUBY_VERSION}-slim AS base
 
+# 2. ビルド依存関係インストールステージ
+FROM base AS build_deps
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       curl \
+       gnupg \
+       libpq-dev \
+    && curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash - \
+    && apt-get install -y --no-install-recommends nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# 3. アプリケーションビルドステージ（名前を builder に変更）
+FROM build_deps AS builder
 WORKDIR /app
 
+# Gemfile と Gemfile.lock を先にコピー
 COPY Gemfile Gemfile.lock ./
-RUN bundle install
 
-COPY . .
+# Bundler 設定
+ENV BUNDLE_WITHOUT="development:test" \
+    BUNDLE_DEPLOYMENT="1" \
+    BUNDLE_CLEAN="true" \
+    BUNDLE_PATH="vendor/bundle"
+
+# Gem インストール
+RUN bundle install --jobs $(nproc) --retry 3
+
+# 残りのソースをコピー
+COPY . ./
+
+# 本番用 CSS ビルド
+ENV RAILS_ENV=production
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build
+
+# 4. 最終実行イメージステージ
+FROM base AS final
+WORKDIR /app
+
+# 実行時に必要な環境変数を設定
+ENV RAILS_ENV="production" \
+    BUNDLE_PATH="vendor/bundle"
+
+# 開発環境向けに C 拡張をビルドできるツールと PostgreSQL ヘッダをインストール
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       ruby-dev \
+       libpq5 \
+       libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# builder ステージから成果物をコピー
+COPY --from=builder /app/vendor/bundle /app/vendor/bundle
+COPY --from=builder /app /app
+COPY --from=builder /app/app/assets/builds /app/app/assets/builds
+
+EXPOSE 3000
+# CMD は docker-compose 側で指定

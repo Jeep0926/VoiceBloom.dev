@@ -104,3 +104,5 @@ Thumbs.db
 *.bak
 *.tmp
 *.temp
+/app/assets/builds/*
+!/app/assets/builds/.keep
