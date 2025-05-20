@@ -1,10 +1,8 @@
 ARG RUBY_VERSION=3.3.0
 ARG NODE_MAJOR=20
 
-# 1. ベースイメージ (slim)
 FROM ruby:${RUBY_VERSION}-slim AS base
 
-# 2. ビルド依存関係インストールステージ
 FROM base AS build_deps
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
@@ -16,38 +14,31 @@ RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. アプリケーションビルドステージ（名前を builder に変更）
 FROM build_deps AS builder
 WORKDIR /app
 
-# Gemfile と Gemfile.lock を先にコピー
 COPY Gemfile Gemfile.lock ./
-
-# Bundler 設定
 ENV BUNDLE_WITHOUT="development:test" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_CLEAN="true" \
     BUNDLE_PATH="vendor/bundle"
-
-# Gem インストール
 RUN bundle install --jobs $(nproc) --retry 3
 
-# 残りのソースをコピー
 COPY . ./
 
-# 本番用 CSS ビルド
 ENV RAILS_ENV=production
 RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build
+RUN bundle exec rails assets:precompile
 
-# 4. 最終実行イメージステージ
 FROM base AS final
 WORKDIR /app
 
-# 実行時に必要な環境変数を設定
 ENV RAILS_ENV="production" \
-    BUNDLE_PATH="vendor/bundle"
+    BUNDLE_PATH="vendor/bundle" \
+    RAILS_LOG_TO_STDOUT="true" \
+    RAILS_SERVE_STATIC_FILES="true"
 
-# 開発環境向けに C 拡張をビルドできるツールと PostgreSQL ヘッダをインストール
+# C拡張用ツールとPostgreSQLヘッダを残す
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -56,10 +47,10 @@ RUN apt-get update -qq \
        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# builder ステージから成果物をコピー
 COPY --from=builder /app/vendor/bundle /app/vendor/bundle
 COPY --from=builder /app /app
 COPY --from=builder /app/app/assets/builds /app/app/assets/builds
+COPY --from=builder /app/public /app/public
 
 EXPOSE 3000
-# CMD は docker-compose 側で指定
+# CMD は fly.toml の processes で指定
