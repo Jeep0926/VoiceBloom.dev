@@ -27,8 +27,11 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle config set --local without "" \
     && bundle install --jobs $(nproc) --retry 3 --deployment
 
-# Copy application code
+# Copy application code (includes bin/, config/, etc.)
 COPY . ./
+
+# Make sure bin/rails is executable
+RUN chmod +x bin/rails
 
 # Precompile assets (Tailwind + assets)
 ENV RAILS_ENV=production
@@ -54,8 +57,11 @@ RUN apt-get update -qq \
        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy gems and application from builder
+# Copy gems and app from builder
 COPY --from=builder /app /app
 
-# Set entrypoint
+# 再度 bin/rails を確実に実行可能に
+RUN chmod +x bin/rails
+
+# CMD を定義（Renderの「Docker Command」に書かなくて済む）
 CMD ["/bin/bash", "-c", "bin/rails db:migrate && bundle exec puma -C config/puma.rb"]
