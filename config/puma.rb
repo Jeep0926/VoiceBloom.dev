@@ -10,14 +10,14 @@
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
 # Puma のスレッド／ワーカー数を環境変数で制御
-workers Integer(ENV.fetch("WEB_CONCURRENCY", 1))
-threads_count = Integer(ENV.fetch("RAILS_MAX_THREADS", 5))
+workers Integer(ENV.fetch('WEB_CONCURRENCY', 1))
+threads_count = Integer(ENV.fetch('RAILS_MAX_THREADS', 5))
 threads threads_count, threads_count
 
-rails_env = ENV.fetch("RAILS_ENV", "development")
+rails_env = ENV.fetch('RAILS_ENV', 'development')
 
 # 本番環境ではプリロードし、ワーカー数に応じてフォーク
-preload_app! if rails_env == "production"
+preload_app! if rails_env == 'production'
 
 # フォーク後の DB 接続再確立
 on_worker_boot do
@@ -26,16 +26,16 @@ end
 
 # ポート設定とバインド（0.0.0.0 でリッスン）
 # IPv4 + IPv6 両対応にする場合は第2引数に "::" を渡す
-port ENV.fetch("PORT", 3000)
-bind "tcp://0.0.0.0:#{ENV.fetch("PORT", 3000)}" 
+port ENV.fetch('PORT', 3000)
+bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}"
 
 environment rails_env
 
 # タイムアウト設定（開発のみ）
-worker_timeout 3600 if rails_env == "development"
+worker_timeout 3600 if rails_env == 'development'
 
 # PID ファイル
-pidfile ENV.fetch("PIDFILE", "tmp/pids/server.pid")
+pidfile ENV.fetch('PIDFILE', 'tmp/pids/server.pid')
 
 # bin/rails restart を許可
 plugin :tmp_restart
