@@ -1,10 +1,10 @@
 ARG RUBY_VERSION=3.3.0
 ARG NODE_MAJOR=20
 
-# 1. ベースイメージ (slim)
+# Base image for runtime
 FROM ruby:${RUBY_VERSION}-slim AS base
 
-# 2. ビルド依存関係インストールステージ
+# Install build dependencies
 FROM base AS build_deps
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
@@ -16,38 +16,36 @@ RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# 3. アプリケーションビルドステージ（名前を builder に変更）
+# Builder stage: install gems and build assets
 FROM build_deps AS builder
 WORKDIR /app
 
-# Gemfile と Gemfile.lock を先にコピー
+# Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
 
-# Bundler 設定
-ENV BUNDLE_WITHOUT="development:test" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_CLEAN="true" \
-    BUNDLE_PATH="vendor/bundle"
+# Ensure all groups (including development/test) are installed
+RUN bundle config set --local without "" \
+    && bundle install --jobs $(nproc) --retry 3 --deployment
 
-# Gem インストール
-RUN bundle install --jobs $(nproc) --retry 3
-
-# 残りのソースをコピー
+# Copy application code
 COPY . ./
 
-# 本番用 CSS ビルド
+# Precompile assets (Tailwind + assets)
 ENV RAILS_ENV=production
-RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build \
+    && SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
-# 4. 最終実行イメージステージ
+# Final stage: minimal runtime image
 FROM base AS final
 WORKDIR /app
 
-# 実行時に必要な環境変数を設定
+# Environment variables for runtime
 ENV RAILS_ENV="production" \
-    BUNDLE_PATH="vendor/bundle"
+    BUNDLE_PATH="vendor/bundle" \
+    RAILS_LOG_TO_STDOUT="true" \
+    RAILS_SERVE_STATIC_FILES="true"
 
-# 開発環境向けに C 拡張をビルドできるツールと PostgreSQL ヘッダをインストール
+# Install runtime dependencies
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -56,10 +54,10 @@ RUN apt-get update -qq \
        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# builder ステージから成果物をコピー
+# Copy gems and application from builder
 COPY --from=builder /app/vendor/bundle /app/vendor/bundle
 COPY --from=builder /app /app
-COPY --from=builder /app/app/assets/builds /app/app/assets/builds
+COPY --from=builder /app/public /app/public
 
 EXPOSE 3000
-# CMD は docker-compose 側で指定
+# CMD is defined in fly.toml processes

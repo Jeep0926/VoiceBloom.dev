@@ -1,0 +1,32 @@
+current directory: /Users/hiranotatsurou/VoiceBloom.dev/vendor/bundle/ruby/3.3.0/gems/psych-5.2.6/ext/psych
+/Users/hiranotatsurou/.rbenv/versions/3.3.0/bin/ruby extconf.rb
+checking for pkg-config for yaml-0.1... ["-I/usr/local/Cellar/libyaml/0.2.5/include ", "-L/usr/local/Cellar/libyaml/0.2.5/lib", "-lyaml"]
+checking for yaml.h... yes
+checking for yaml_get_version() in -lyaml... yes
+creating Makefile
+
+current directory: /Users/hiranotatsurou/VoiceBloom.dev/vendor/bundle/ruby/3.3.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250519-76773-tz6nr1 sitelibdir\=./.gem.20250519-76773-tz6nr1 clean
+cd libyaml && /Library/Developer/CommandLineTools/usr/bin/make clean
+/bin/sh: line 0: cd: libyaml: No such file or directory
+make: [clean-so] Error 1 (ignored)
+
+current directory: /Users/hiranotatsurou/VoiceBloom.dev/vendor/bundle/ruby/3.3.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250519-76773-tz6nr1 sitelibdir\=./.gem.20250519-76773-tz6nr1
+compiling psych.c
+compiling psych_emitter.c
+compiling psych_parser.c
+compiling psych_to_ruby.c
+compiling psych_yaml_tree.c
+linking shared-object psych.bundle
+ld: warning: ignoring duplicate libraries: '-lyaml'
+
+current directory: /Users/hiranotatsurou/VoiceBloom.dev/vendor/bundle/ruby/3.3.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250519-76773-tz6nr1 sitelibdir\=./.gem.20250519-76773-tz6nr1 install
+/usr/bin/install -c -m 0755 psych.bundle ./.gem.20250519-76773-tz6nr1
+
+current directory: /Users/hiranotatsurou/VoiceBloom.dev/vendor/bundle/ruby/3.3.0/gems/psych-5.2.6/ext/psych
+make DESTDIR\= sitearchdir\=./.gem.20250519-76773-tz6nr1 sitelibdir\=./.gem.20250519-76773-tz6nr1 clean
+cd libyaml && /Library/Developer/CommandLineTools/usr/bin/make clean
+/bin/sh: line 0: cd: libyaml: No such file or directory
+make: [clean-so] Error 1 (ignored)

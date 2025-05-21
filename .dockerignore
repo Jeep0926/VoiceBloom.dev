@@ -2,13 +2,16 @@
 
 # Ignore git directory.
 /.git/
+.gitignore # .gitignore自体もビルドコンテキストには不要
 
 # Ignore bundler config.
 /.bundle
 
 # Ignore all environment files (except templates).
 /.env*
-!/.env*.erb
+!/.env*.erb # もしERBテンプレートのenvファイルを使うなら。通常は .env.example のような形が多い。
+!.env.example
+!.env.sample
 
 # Ignore all default key files.
 /config/master.key
@@ -22,6 +25,7 @@
 
 # Ignore pidfiles, but keep the directory.
 /tmp/pids/*
+!/tmp/pids/
 !/tmp/pids/.keep
 
 # Ignore storage (uploaded files in development and any SQLite databases).
@@ -35,3 +39,51 @@
 /app/assets/builds/*
 !/app/assets/builds/.keep
 /public/assets
+
+# Python specific files (主に python_api ディレクトリ内を想定)
+**/__pycache__/
+**/*.py[cod] # .pyc, .pyo, .pyd を全ディレクトリで無視
+python_api/.venv/
+python_api/env/
+python_api/venv/
+python_api/ENV/
+python_api/env.bak/
+python_api/venv.bak/
+python_api/instance/
+python_api/.pytest_cache/
+python_api/.mypy_cache/
+python_api/.ruff_cache/
+python_api/.envrc # もしpython_apiディレクトリで使うなら
+
+# OS-generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Editor/IDE specific
+.idea/
+.vscode/
+*.swp
+*~
+*.sublime-project
+*.sublime-workspace
+
+# Docker specific
+# Dockerfileやdocker-compose.yml自体はビルドコンテキストに必要なことが多いので、
+# ここで無視するのは慎重に。
+# ただし、今回のエラーの原因ではなさそうなので、一旦そのまま。
+# /.dockerignore # .dockerignore自体をビルドコンテキストに含めない場合
+# /Dockerfile* # 全てのDockerfileをビルドコンテキストに含めない場合 (これは通常しない)
+
+# Fly.io specific configuration files (これらはビルドコンテキストに不要)
+# fly.toml
+# python_api/fly.toml
+
+# Temporary or backup files
+*.bak
+*.tmp
+*.temp
