@@ -1,10 +1,10 @@
 ARG RUBY_VERSION=3.3.0
 ARG NODE_MAJOR=20
 
-# Base image for runtime
 FROM ruby:${RUBY_VERSION}-slim AS base
 
 # Install build dependencies
+# cSpell:ignore libpq
 FROM base AS build_deps
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
@@ -20,14 +20,12 @@ RUN apt-get update -qq \
 FROM build_deps AS builder
 WORKDIR /app
 
-# Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
 
 # Ensure all groups (including development/test) are installed
 RUN bundle config set --local without "" \
     && bundle install --jobs $(nproc) --retry 3 --deployment
 
-# Copy application code (includes bin/, config/, etc.)
 COPY . ./
 
 # Make sure bin/rails is executable
@@ -42,13 +40,11 @@ RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build \
 FROM base AS final
 WORKDIR /app
 
-# Environment variables for runtime
 ENV RAILS_ENV="production" \
     BUNDLE_PATH="vendor/bundle" \
     RAILS_LOG_TO_STDOUT="true" \
     RAILS_SERVE_STATIC_FILES="true"
 
-# Install runtime dependencies
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -57,11 +53,8 @@ RUN apt-get update -qq \
        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy gems and app from builder
 COPY --from=builder /app /app
 
-# 再度 bin/rails を確実に実行可能に
 RUN chmod +x bin/rails
 
-# CMD を定義（Renderの「Docker Command」に書かなくて済む）
 CMD ["/bin/bash", "-c", "bin/rails db:migrate && bundle exec puma -C config/puma.rb"]

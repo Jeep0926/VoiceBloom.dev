@@ -9,6 +9,7 @@
 # Any libraries that use thread pools should be configured to match
 # the maximum value specified for Puma. Default is set to 5 threads for minimum
 # and maximum; this matches the default thread size of Active Record.
+
 # Puma のスレッド／ワーカー数を環境変数で制御
 workers Integer(ENV.fetch('WEB_CONCURRENCY', 1))
 threads_count = Integer(ENV.fetch('RAILS_MAX_THREADS', 5))
