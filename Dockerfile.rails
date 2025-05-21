@@ -1,8 +1,10 @@
 ARG RUBY_VERSION=3.3.0
 ARG NODE_MAJOR=20
 
+# Base image for runtime
 FROM ruby:${RUBY_VERSION}-slim AS base
 
+# Install build dependencies
 FROM base AS build_deps
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
@@ -14,31 +16,36 @@ RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends nodejs \
     && rm -rf /var/lib/apt/lists/*
 
+# Builder stage: install gems and build assets
 FROM build_deps AS builder
 WORKDIR /app
 
+# Copy Gemfile and Gemfile.lock
 COPY Gemfile Gemfile.lock ./
-ENV BUNDLE_WITHOUT="development:test" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_CLEAN="true" \
-    BUNDLE_PATH="vendor/bundle"
-RUN bundle install --jobs $(nproc) --retry 3
 
+# Ensure all groups (including development/test) are installed
+RUN bundle config set --local without "" \
+    && bundle install --jobs $(nproc) --retry 3 --deployment
+
+# Copy application code
 COPY . ./
 
+# Precompile assets (Tailwind + assets)
 ENV RAILS_ENV=production
-RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build
-RUN bundle exec rails assets:precompile
+RUN SECRET_KEY_BASE_DUMMY=1 bundle exec rails tailwindcss:build \
+    && SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
+# Final stage: minimal runtime image
 FROM base AS final
 WORKDIR /app
 
+# Environment variables for runtime
 ENV RAILS_ENV="production" \
     BUNDLE_PATH="vendor/bundle" \
     RAILS_LOG_TO_STDOUT="true" \
     RAILS_SERVE_STATIC_FILES="true"
 
-# C拡張用ツールとPostgreSQLヘッダを残す
+# Install runtime dependencies
 RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
        build-essential \
@@ -47,10 +54,10 @@ RUN apt-get update -qq \
        libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Copy gems and application from builder
 COPY --from=builder /app/vendor/bundle /app/vendor/bundle
 COPY --from=builder /app /app
-COPY --from=builder /app/app/assets/builds /app/app/assets/builds
 COPY --from=builder /app/public /app/public
 
 EXPOSE 3000
-# CMD は fly.toml の processes で指定
+# CMD is defined in fly.toml processes

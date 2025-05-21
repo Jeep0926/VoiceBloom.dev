@@ -35,9 +35,8 @@ local:
 
 cloudflare:
   service: S3
-  endpoint: https://<%= Rails.application.credentials.cloudflare.account_id %>.r2.cloudflarestorage.com
-  access_key_id: <%= Rails.application.credentials.cloudflare.access_key_id %>
-  secret_access_key: <%= Rails.application.credentials.cloudflare.secret_access_key %>
-  bucket: <%= Rails.application.credentials.cloudflare.bucket_name %>
-  region: auto # R2の場合 'auto' が推奨されることが多い
-  # public: false # 通常は非公開にする
+  endpoint: https://<%= ENV['CLOUDFLARE_ACCOUNT_ID'] %>.r2.cloudflarestorage.com
+  access_key_id: <%= ENV['CLOUDFLARE_ACCESS_KEY_ID'] %>
+  secret_access_key: <%= ENV['CLOUDFLARE_SECRET_ACCESS_KEY'] %>
+  bucket: <%= ENV['CLOUDFLARE_BUCKET_NAME'] %>
+  region: auto
