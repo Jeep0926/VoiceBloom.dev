@@ -26,7 +26,7 @@ end
 
 # ポート設定とバインド（0.0.0.0 でリッスン）
 # IPv4 + IPv6 両対応にする場合は第2引数に "::" を渡す
-port ENV.fetch('PORT', 3000)
+# port ENV.fetch('PORT', 3000)
 bind "tcp://0.0.0.0:#{ENV.fetch('PORT', 3000)}"
 
 environment rails_env
