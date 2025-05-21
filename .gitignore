@@ -57,12 +57,14 @@
 puma.sock
 
 # Ignore .byebug_history.
+# cSpell:ignore byebug
 .byebug_history
 
 # Ignore Coverage reports
 /coverage/
 
 # Python specific files for the python_api directory
+# cSpell:ignore pycache pytest mypy venv ehthumbs
 python_api/__pycache__/
 # .pyc, .pyo, .pyd
 python_api/*.py[cod]
