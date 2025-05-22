@@ -69,3 +69,7 @@ gem 'tailwindcss-rails'
 gem 'dockerfile-rails', '>= 1.7', group: :development
 
 gem 'aws-sdk-s3', require: false
+
+gem 'devise'
+
+gem 'discard'
