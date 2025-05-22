@@ -1,14 +1,15 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  devise_for :users, controllers: {
+    registrations: 'users/registrations' # registrationsコントローラーのパスを指定
+    # sessions: 'users/sessions' # もしセッションもカスタマイズするなら
+  }
+  root 'home#index'
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
-
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
-  # get 'up' => 'rails/health#show', as: :rails_health_check
-
   # 200 OK を返すだけのヘルスチェック用エンドポイント
   get '/up', to: proc { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
   # Defines the root path route ("/")
-  root 'sample#index'
+
 end
