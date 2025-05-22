@@ -11,5 +11,4 @@ Rails.application.routes.draw do
   # 200 OK を返すだけのヘルスチェック用エンドポイント
   get '/up', to: proc { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
   # Defines the root path route ("/")
-
 end
