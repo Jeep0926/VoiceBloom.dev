@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>App</title>
+    <title>VoiceBloom</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -9,12 +9,11 @@
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
   </head>
 
-  <body>
-    <header>
-      <%# ここにヘッダーを追加 %>
-    </header>
+  <body class="bg-gray-100"> <%# ボディ全体に薄いグレーの背景など設定 (任意) %>
+    <%# ヘッダーがあればここに %>
+    <%# <%= render "layouts/header" %>
 
-    <div class="flash-messages container mx-auto px-5">
+    <div class="flash-messages container mx-auto px-5 mt-4">
       <% if notice %>
         <p class="notice bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
           <%= notice %>
@@ -27,8 +26,11 @@
       <% end %>
     </div>
 
-    <main class="container mx-auto mt-28 px-5 flex">
+    <main role="main" class="container mx-auto mt-8 mb-8 px-5">
       <%= yield %>
     </main>
+
+    <%# フッターがあればここに %>
+    <%# <%= render "layouts/footer" %>
   </body>
 </html>
