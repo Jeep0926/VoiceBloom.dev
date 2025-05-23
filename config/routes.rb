@@ -2,8 +2,8 @@
 
 Rails.application.routes.draw do
   devise_for :users, controllers: {
-    registrations: 'users/registrations' # registrationsコントローラーのパスを指定
-    # sessions: 'users/sessions' # もしセッションもカスタマイズするなら
+    registrations: 'users/registrations', # registrationsコントローラーのパスを指定
+    sessions: 'users/sessions'
   }
   root 'home#index'
 

@@ -7,9 +7,10 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
-  validates :name, presence: true, length: { minimum: 2, maximum: 30 }
+  validates :name, presence: true, length: { maximum: 30 }
 
   has_one_attached :profile_image
 
+  # 論理削除したユーザーを検索対象に含めないため
   default_scope { kept }
 end
