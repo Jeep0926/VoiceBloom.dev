@@ -1,0 +1,42 @@
+<%# app/views/layouts/_header.html.erb %>
+<header class="bg-white-700 text-purple shadow-md h-16"> <%# ヘッダー全体の背景色、文字色、影 %>
+  <nav class="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
+    <%# ロゴ (左側) %>
+    <div class="h-full flex items-center">
+      <%= link_to root_path, class: "flex items-center h-full" do %>
+        <%# ロゴのサイズを調整 %>
+        <%= image_tag 'logo.svg', alt: 'VoiceBloom Logo', class: 'h-34 w-auto' %>
+      <% end %>
+    </div>
+
+    <%# ユーザーナビゲーション (右側) %>
+    <div id="user-navigation">
+      <div class="flex items-center space-x-6"> <%# 各要素を横並びにしてスペースを空ける %>
+        <% if user_signed_in? %>
+          <%# ユーザー名 (MVPではテキストでOK、将来的にアイコンとドロップダウンなども検討可) %>
+          <span class="text-sm font-medium">
+            <%= current_user.name %> さん
+          </span>
+
+          <%# アカウント編集へのリンク (アイコンは本リリースで検討) %>
+          <%= link_to edit_user_registration_path, class: "text-sm hover:text-purple-300 transition duration-150 ease-in-out" do %>
+            <%# ここにアカウント編集アイコンSVGなどを配置可能 %>
+            <span>アカウント編集</span>
+          <% end %>
+
+          <%# ログアウトボタン (アイコンとテキストを組み合わせる例) %>
+          <%= button_to destroy_user_session_path, method: :delete, class: "flex items-center text-sm text-red-300 hover:text-red-100 transition duration-150 ease-in-out" do %>
+            <%# Heroicon: logout (サンプル) %>
+            <svg class="h-5 w-5 mr-1" xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            <span>ログアウト</span>
+          <% end %>
+        <% else %>
+          <%= link_to "新規登録", new_user_registration_path, class: "text-sm font-medium hover:text-purple-300 transition duration-150 ease-in-out" %>
+          <%= link_to "ログイン", new_user_session_path, class: "text-sm font-medium bg-white text-purple-700 hover:bg-purple-100 py-2 px-4 rounded-md transition duration-150 ease-in-out" %>
+        <% end %>
+      </div>
+    </div>
+  </nav>
+</header>

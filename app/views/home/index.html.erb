@@ -6,8 +6,6 @@
   <% if user_signed_in? %>
     <p>
       こんにちは、<%= current_user.name %> さん！
-      <%= link_to "アカウント編集", edit_user_registration_path, class: "text-green-500 hover:underline" %> |
-      <%= button_to "ログアウト", destroy_user_session_path, method: :delete, class: "text-red-500 hover:underline" %>
     </p>
   <% else %>
     <p>
