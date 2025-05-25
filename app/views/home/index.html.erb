@@ -1,16 +1,66 @@
-<div>
-  <h1 class="font-bold text-4xl">Home#index</h1>
-  <p>Find me in app/views/home/index.html.erb</p>
+<%# app/views/home/index.html.erb %>
+<div class="container mx-auto px-4 py-8"> <%# 全体を囲むコンテナと基本的なパディング %>
 
-    <%# devise動作確認用 %>
+  <%# --- ログイン状態表示とDevise関連リンク (既存の確認用コードを少し整える) --- %>
+  <div class="mb-8 p-4 bg-gray-100 rounded-lg shadow">
+    <h2 class="text-xl font-semibold text-gray-700 mb-2">アカウント情報</h2>
+    <% if user_signed_in? %>
+      <p class="text-gray-800">
+        こんにちは、<span class="font-medium"><%= current_user.name || current_user.email %></span> さん！
+      </p>
+      <%# ヘッダーに主要なナビゲーションがあるので、ここでは表示しなくても良いかもしれません %>
+      <%# <p class="mt-2">
+        <%= link_to "アカウント編集", edit_user_registration_path, class: "text-blue-500 hover:underline" %> |
+        <%= button_to "ログアウト", destroy_user_session_path, method: :delete, class: "text-red-500 hover:underline inline-block" %>
+      </p>
+    <% else %>
+      <p class="text-gray-800">
+        VoiceBloomへようこそ! まずはユーザー登録またはログインをお願いします。
+      </p>
+      <p class="mt-2">
+        <%= link_to "新規登録", new_user_registration_path, class: "text-blue-500 hover:underline" %> |
+        <%= link_to "ログイン", new_user_session_path, class: "text-blue-500 hover:underline" %>
+      </p>
+    <% end %>
+  </div>
+
+  <%# --- メインコンテンツエリア --- %>
+  <div class="text-center mb-8">
+    <h1 class="text-4xl font-bold text-purple-700 tracking-tight sm:text-5xl">
+      <%# VoiceBloom へようこそ！ (もしロゴやメインキャッチがあればここに) %>
+      Home#index <%# 仮のタイトル %>
+    </h1>
+    <p class="mt-4 text-lg leading-8 text-gray-600">
+      Find me in app/views/home/index.html.erb
+    </p>
+  </div>
+
+  <%# --- 「今日の声をチェックする」ボタン (ログインユーザーにのみ表示) --- %>
   <% if user_signed_in? %>
-    <p>
-      こんにちは、<%= current_user.name %> さん！
-    </p>
-  <% else %>
-    <p>
-      <%= link_to "新規登録", new_user_registration_path, class: "text-blue-500 hover:underline" %> |
-      <%= link_to "ログイン", new_user_session_path, class: "text-blue-500 hover:underline" %>
-    </p>
+    <div class="my-12 text-center">
+      <%= link_to new_voice_condition_log_path, class: "inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-semibold rounded-full shadow-lg text-white bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out" do %>
+        <%# Heroicon: microphone (solid) - https://heroicons.com/ %>
+        <%# -- <svg class="h-6 w-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4z" />
+          <path fill-rule="evenodd" d="M10 18a7 7 0 007-7V8a7 7 0 00-7-7h-.008A7.001 7.001 0 003 8v3a7 7 0 007 7zM3 8a1 1 0 011-1h.008A5.001 5.001 0 019 3v2.68A6.966 6.966 0 003.744 8H3zm13.256 0A6.966 6.966 0 0011 5.681V3a5.001 5.001 0 014.992 4H17a1 1 0 01-1 1h-.008a5.002 5.002 0 01-4.486 4.942V17a5.002 5.002 0 014.992-4.992H17a1 1 0 01.256-.008z" clip-rule="evenodd" />
+        </svg> -- %>
+        今日の声をチェックする
+      <% end %>
+    </div>
   <% end %>
+
+  <%# --- その他のホーム画面コンテンツ (将来的に追加) --- %>
+  <%# 例:
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">発声練習メニュー</h2>
+      <p class="text-gray-600">様々な発声練習に挑戦しましょう。</p>
+      <%# <%= link_to "練習を始める", "#", class: "mt-4 inline-block bg-green-500 text-white py-2 px-4 rounded" %>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-2xl font-semibold text-gray-800 mb-3">学習記録を見る</h2>
+      <p class="text-gray-600">これまでの成長を確認しましょう。</p>
+      <%# <%= link_to "記録を見る", "#", class: "mt-4 inline-block bg-yellow-500 text-white py-2 px-4 rounded" %>
+    </div>
+  </div>
 </div>
