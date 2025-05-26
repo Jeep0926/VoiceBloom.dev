@@ -9,20 +9,20 @@
   </div>
 
   <%# 録音コントロールエリア (次のJS実装タスクで詳細を実装) %>
-  <div class="text-center space-y-4">
+  <div class="text-center space-y-4" data-controller="web-audio-recorder">
     <div>
-      <button id="start-recording-button" type="button" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md transition duration-150 ease-in-out">
+      <button type="button" class="..." data-action="click->web-audio-recorder#startRecording" data-web-audio-recorder-target="startButton">
         録音を開始する
       </button>
-      <button id="stop-recording-button" type="button" class="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md transition duration-150 ease-in-out hidden">
+      <button type="button" class="... hidden" data-action="click->web-audio-recorder#stopRecording" data-web-audio-recorder-target="stopButton">
         録音を停止する
       </button>
     </div>
-    <div id="recording-status" class="text-gray-600">
-      <%# 録音時間などがJSで表示されるエリア %>
+    <div class="text-gray-600" data-web-audio-recorder-target="status">
+      <%# 録音ステータス %>
     </div>
-    <div id="audio-playback-area">
-      <%# 録音した音声の再生UIがJSで表示されるエリア %>
+    <div data-web-audio-recorder-target="playbackArea">
+      <%# 録音音声再生UI %>
     </div>
   </div>
 
