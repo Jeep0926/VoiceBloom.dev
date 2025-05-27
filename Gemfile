@@ -9,6 +9,8 @@ gem 'rails', '~> 7.2.2', '>= 7.2.2.1'
 
 gem 'sprockets-rails'
 
+gem 'jsbundling-rails'
+
 # Use postgresql as the database for Active Record
 gem 'pg', '~> 1.1'
 
