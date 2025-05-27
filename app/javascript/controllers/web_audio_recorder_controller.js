@@ -10,13 +10,15 @@ export default class extends Controller {
     this.audioContext = null;
     this.mediaStreamSource = null;
     this.audioWorkletNode = null;
-    this.rawPcmData = []; // 生のPCMデータ (Float32Arrayの配列) をここに蓄積
-    this.sampleRate = null; // AudioContextから取得
+    this.rawPcmData = [];            // 生のPCMデータ (Float32Arrayの配列) をここに蓄積
+    this.sampleRate = null;          // AudioContextから取得
     this.latestRecordingBlob = null; // 送信用のWAV Blob
-    this.recordingTimer = null; // 録音時間表示用のタイマーID
-    this.recordingStartTime = null; // 録音開始時刻
+    this.recordingTimer = null;      // 録音時間表示用のタイマーID
+    this.recordingStartTime = null;  // 録音開始時刻
+    // this.maxRecordingTime = 5000;    // 録音時間上限 (ミリ秒単位、例: 5秒)
+    this.autoStopTimer = null;       // 自動停止用タイマーID
 
-    this.updateButtonStates(); // 初期ボタン状態設定
+    this.updateButtonStates();       // 初期ボタン状態設定
   }
 
   // ボタンの表示/非表示と有効/無効を切り替えるヘルパー
@@ -103,6 +105,15 @@ export default class extends Controller {
       if (this.hasStatusTarget) this.statusTarget.textContent = "録音中... 00:00";
       console.log("AudioWorkletNode setup complete, recording started at sample rate:", this.sampleRate);
 
+      // ★ 5秒後に自動停止するタイマーを設定
+      if (this.autoStopTimer) clearTimeout(this.autoStopTimer); // 既存のタイマーがあればクリア
+      this.autoStopTimer = setTimeout(() => {
+        if (this.isRecording) { // まだ録音中であれば停止する
+          console.log("5秒経過、自動停止します。");
+          this.stopRecording();
+        }
+      }, 5000);
+
     } catch (err) {
       console.error("AudioWorkletのセットアップまたは録音開始に失敗しました:", err);
       if (this.hasStatusTarget) this.statusTarget.textContent = "エラー: 録音を開始できませんでした。";
@@ -112,12 +123,14 @@ export default class extends Controller {
       }
       this.isRecording = false; // 状態をリセット
       this.updateButtonStates(); // ボタンの状態を戻す
+      if (this.autoStopTimer) clearTimeout(this.autoStopTimer); // エラー時もタイマーをクリア
     }
   }
 
   // 録音停止処理
   async stopRecording() {
     if (!this.isRecording) return;
+    if (this.autoStopTimer) clearTimeout(this.autoStopTimer); // 自動停止タイマーをクリア
     this.isRecording = false; // まずisRecordingフラグをfalseに
     if (this.recordingTimer) clearInterval(this.recordingTimer); // タイマー停止
 
@@ -158,7 +171,14 @@ export default class extends Controller {
     // Workletからの最後のデータが届くのを少し待つ
     // (より堅牢にするならWorkletからの 'stopped' メッセージ受信をトリガーにする)
     setTimeout(() => {
-      this.processRecordedData();
+      this.processRecordedData(); // WAVエンコードと再生UI作成
+      // processRecordedData の中で this.latestRecordingBlob がセットされるので、その後に送信
+      if (this.latestRecordingBlob) {
+        this.sendAudioData(this.latestRecordingBlob);
+      } else {
+        console.warn("送信する録音データがありません。");
+        if (this.hasStatusTarget) this.statusTarget.textContent = "送信する録音データがありませんでした。";
+      }
     }, 200); // 200ms待機 (この時間は調整が必要な場合あり)
   }
 
@@ -198,6 +218,64 @@ export default class extends Controller {
 
     this.rawPcmData = []; // 次の録音のためにクリア
     console.log("WAV Blob created:", wavBlob);
+  }
+
+  async sendAudioData(blob) {
+    if (!blob || blob.size <= 44) { // 44はWAVヘッダのみのサイズ
+      console.warn("有効な録音データがないため送信をスキップします。");
+      if (this.hasStatusTarget) this.statusTarget.textContent = "有効な録音データがありませんでした。";
+      return;
+    }
+
+    if (this.hasStatusTarget) this.statusTarget.textContent = "音声データを送信中...";
+    console.log("Sending audio data to Rails:", blob);
+
+    const formData = new FormData();
+    // Rails側で params[:voice_condition_log][:recorded_audio] として受け取る
+    formData.append("voice_condition_log[recorded_audio]", blob, "recording.wav");
+    // Rails側で params[:voice_condition_log][:phrase_text_snapshot] として受け取る
+    // お題フレーズをビューから取得するか、コントローラーから渡されたものを保持しておく必要がある
+    // ここでは、ビューの特定要素から取得する例 (data属性などを使うと良い)
+    const phraseElement = document.getElementById("current-phrase"); // 仮のID
+    const phraseText = phraseElement ? phraseElement.textContent : "（お題不明）";
+    formData.append("voice_condition_log[phrase_text_snapshot]", phraseText);
+
+
+    // CSRFトークンの取得
+    const csrfToken = document.querySelector("meta[name='csrf-token']")?.content;
+    if (!csrfToken) {
+      console.error("CSRF token not found!");
+      if (this.hasStatusTarget) this.statusTarget.textContent = "エラー: 送信に失敗しました (CSRFトークンが見つかりません)。";
+      return;
+    }
+
+    try {
+      const response = await fetch("/voice_condition_logs", { // VoiceConditionLogsController#create へのパス
+        method: "POST",
+        headers: {
+          "X-CSRF-Token": csrfToken
+          // "Accept": "application/json" // もしRails側がJSONを返すなら
+        },
+        body: formData
+      });
+
+      if (response.ok) {
+        // const result = await response.json(); // もしRails側がJSONを返すなら
+        console.log("音声データ送信成功:", response);
+        if (this.hasStatusTarget) this.statusTarget.textContent = "音声データを送信しました！";
+        // 必要であれば、成功後に特定のページにリダイレクトするなどの処理
+        // window.location.href = result.redirect_url; // 例
+        // 今回はダミーの create アクションなので、リダイレクトはRails側で行う
+      } else {
+        console.error("音声データ送信失敗:", response);
+        const errorText = await response.text();
+        console.error("エラー詳細:", errorText);
+        if (this.hasStatusTarget) this.statusTarget.textContent = `エラー: 送信に失敗しました (${response.status})`;
+      }
+    } catch (error) {
+      console.error("音声データ送信中にエラーが発生しました:", error);
+      if (this.hasStatusTarget) this.statusTarget.textContent = "エラー: 送信中に問題が発生しました。";
+    }
   }
 
   // 録音時間のUIを更新
