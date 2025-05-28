@@ -7,4 +7,3 @@ class VoiceFeaturesResponse(BaseModel):
     volume_value: Optional[float] = None
     duration_seconds: Optional[float] = None
     analysis_error_message: Optional[str] = None
-    
