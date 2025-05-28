@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class VoiceFeaturesResponse(BaseModel):
     pitch_value: Optional[float] = None
     tempo_value: Optional[float] = None
