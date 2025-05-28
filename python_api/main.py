@@ -20,10 +20,12 @@ async def health_check():
 
 TEMP_AUDIO_DIR = "temp_audio_files" # 一時ファイル保存ディレクトリ名
 
+
 @app.on_event("startup")
 async def startup_event():
     # アプリケーション起動時に一時ディレクトリを作成
     os.makedirs(TEMP_AUDIO_DIR, exist_ok=True)
+
 
 @app.post("/analyze/voice_condition", response_model=VoiceFeaturesResponse)
 async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
@@ -47,6 +49,7 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         y, sr = librosa.load(temp_file_path, sr=None) # sr=Noneで元のサンプリングレートを維持
         duration_seconds = librosa.get_duration(y=y, sr=sr)
 
+
         # 声の高さ (平均ピッチ F0)
         pitches, magnitudes = librosa.piptrack(y=y, sr=sr)
         pitch_values = []
@@ -56,6 +59,7 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
             if pitch > 0:
                 pitch_values.append(pitch)
         avg_pitch = sum(pitch_values) / len(pitch_values) if pitch_values else None # Noneを許容
+
 
         # 話す速さ (テンポ BPM)
         onset_env = librosa.onset.onset_strength(y=y, sr=sr)
@@ -71,6 +75,7 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         rms = librosa.feature.rms(y=y)[0] # rmsは2次元配列で返ってくることがあるので[0]
         # 有効なRMS値のみで平均を取る (無音区間などを除くため、ここでは簡易的に全平均)
         avg_volume_db = librosa.amplitude_to_db(rms, ref=1.0).mean() if rms.any() else None # ref=1.0で正規化
+
 
         # 分析成功時のレスポンス
         return VoiceFeaturesResponse(
