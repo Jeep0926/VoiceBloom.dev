@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_05_24_120031) do
+ActiveRecord::Schema[7.2].define(version: 2025_05_28_030105) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -72,6 +72,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_24_120031) do
     t.float "volume_value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.float "duration_seconds" #新規追加
+    t.text "analysis_error_message" #新規追加
     t.index ["user_id"], name: "index_voice_condition_logs_on_user_id"
   end
 
