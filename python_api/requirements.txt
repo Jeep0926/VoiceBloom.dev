@@ -3,3 +3,5 @@ uvicorn[standard]
 librosa
 flake8
 black
+pydantic
+python-multipart
