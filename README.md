@@ -360,4 +360,4 @@
 
 ## ■ER図
 
-[![Image from Gyazo](https://i.gyazo.com/52bdd8b7d9c26c2f15e9e0c9b5ef5c40.png)](https://gyazo.com/52bdd8b7d9c26c2f15e9e0c9b5ef5c40)
+[![Image from Gyazo](https://i.gyazo.com/ed1b2503a460a6b1414a61278acc5afa.png)](https://gyazo.com/ed1b2503a460a6b1414a61278acc5afa)
