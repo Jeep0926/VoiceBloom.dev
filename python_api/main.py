@@ -37,43 +37,43 @@ def analyze_speech_tempo_improved(y, sr):
         # 1. 音声区間の検出（無音部分を除外）
         # top_db=20: 20dB以下を無音とする（環境に応じて調整可能）
         intervals = librosa.effects.split(y, top_db=20)
-        
+
         if len(intervals) == 0:
             return None, 0, 0
-        
+
         # 2. 実際の発話時間を計算
         speech_duration = 0
         speech_segments = []
-        
+
         for interval in intervals:
             start, end = interval
             speech_duration += (end - start) / sr
             speech_segments.append(y[start:end])
-        
+
         # 3. 発話部分を結合
         if len(speech_segments) > 0:
             speech_audio = np.concatenate(speech_segments)
-            
+
             # 4. 発話部分のみでonset検出（音節検出）
             onset_frames = librosa.onset.onset_detect(
-                y=speech_audio, 
-                sr=sr, 
-                units='time',
+                y=speech_audio,
+                sr=sr,
+                units="time",
                 hop_length=512,
                 backtrack=True,  # より正確な開始点検出
-                delta=0.1,       # 感度調整（小さいほど敏感）
-                wait=0.03        # 最小間隔（30ms）
+                delta=0.1,  # 感度調整（小さいほど敏感）
+                wait=0.03,  # 最小間隔（30ms）
             )
-            
+
             syllable_count = len(onset_frames)
-            
+
             # 5. 実際の発話時間で話速を計算
             if speech_duration > 0:
                 syllables_per_minute = (syllable_count / speech_duration) * 60
                 return syllables_per_minute, speech_duration, syllable_count
-        
+
         return None, 0, 0
-        
+
     except Exception as e:
         print(f"Tempo analysis error: {e}")
         return None, 0, 0
@@ -116,8 +116,10 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         avg_pitch = float(np.median(valid_f0)) if len(valid_f0) > 0 else None
 
         # === 2. 話す速さ - 改善されたテンポ分析 ===
-        syllables_per_minute, actual_speech_time, syllable_count = analyze_speech_tempo_improved(y, sr)
-        
+        syllables_per_minute, actual_speech_time, syllable_count = (
+            analyze_speech_tempo_improved(y, sr)
+        )
+
         # デバッグ情報をログ出力（本番では削除可能）
         if syllables_per_minute is not None:
             print(f"=== テンポ分析結果 ===")
@@ -126,13 +128,15 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
             print(f"検出された音節数: {syllable_count}")
             print(f"話速: {syllables_per_minute:.1f}音節/分")
             print(f"無音時間: {duration_seconds - actual_speech_time:.2f}秒")
-        
-        avg_tempo = float(syllables_per_minute) if syllables_per_minute is not None else None
+
+        avg_tempo = (
+            float(syllables_per_minute) if syllables_per_minute is not None else None
+        )
 
         # === 3. 声の音量 (dBFS基準での正確な測定) ===
         # 音声の実効値（RMS）を計算
         rms_energy = np.sqrt(np.mean(y**2))
-        
+
         # dBFS（Full Scale decibels）として計算 - 0dBFSが最大値
         if rms_energy > 0:
             avg_volume_db = float(20 * np.log10(rms_energy))
@@ -141,28 +145,32 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
 
         # === 追加情報: 音声品質の簡易判定 ===
         quality_notes = []
-        
+
         # ピッチの妥当性チェック
         if avg_pitch is not None:
             if avg_pitch < 80:
                 quality_notes.append("ピッチが低め（男性の低い声またはノイズの可能性）")
             elif avg_pitch > 300:
-                quality_notes.append("ピッチが高め（女性の高い声または倍音検出の可能性）")
-        
+                quality_notes.append(
+                    "ピッチが高め（女性の高い声または倍音検出の可能性）"
+                )
+
         # 音量の妥当性チェック
         if avg_volume_db is not None:
             if avg_volume_db < -40:
-                quality_notes.append("音量が小さすぎます（録音レベルを上げることを推奨）")
+                quality_notes.append(
+                    "音量が小さすぎます（録音レベルを上げることを推奨）"
+                )
             elif avg_volume_db > -5:
                 quality_notes.append("音量が大きすぎます（音割れの可能性）")
-        
+
         # テンポの妥当性チェック
         if avg_tempo is not None:
             if avg_tempo < 200:
                 quality_notes.append("話速が遅め（ゆっくりとした話し方）")
             elif avg_tempo > 500:
                 quality_notes.append("話速が速め（早口な話し方）")
-        
+
         # デバッグ用: 品質チェック結果をログ出力
         if quality_notes:
             print("=== 音声品質チェック ===")
@@ -174,9 +182,11 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
             pitch_value=avg_pitch,
             tempo_value=avg_tempo,
             volume_value=avg_volume_db,
-            duration_seconds=float(duration_seconds) if duration_seconds is not None else None,
+            duration_seconds=(
+                float(duration_seconds) if duration_seconds is not None else None
+            ),
         )
-        
+
     except Exception as analysis_exc:  # 分析中のエラーを補足
         error_type = type(analysis_exc).__name__
         error_detail = str(analysis_exc)
