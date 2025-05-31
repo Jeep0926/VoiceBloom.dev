@@ -122,7 +122,7 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
 
         # デバッグ情報をログ出力（本番では削除可能）
         if syllables_per_minute is not None:
-            print(f"=== テンポ分析結果 ===")
+            print("=== テンポ分析結果 ===")
             print(f"総録音時間: {duration_seconds:.2f}秒")
             print(f"実際の発話時間: {actual_speech_time:.2f}秒")
             print(f"検出された音節数: {syllable_count}")
