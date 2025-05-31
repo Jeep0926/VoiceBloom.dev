@@ -31,7 +31,7 @@ class VoiceConditionLogsController < ApplicationController
       redirect_to @voice_condition_log, notice: '声のコンディション記録を受け付けました。分析結果をお待ちください。' # rubocop:disable Rails/I18nLocaleTexts
     else
       # バリデーションエラーなどで保存失敗した場合
-      flash.now[:alert] = "記録に失敗しました。" # rubocop:disable Rails/I18nLocaleTexts
+      flash.now[:alert] = '記録に失敗しました。' # rubocop:disable Rails/I18nLocaleTexts
       render :new, status: :unprocessable_entity
     end
   end
