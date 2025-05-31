@@ -1,0 +1,44 @@
+<%# app/views/voice_condition_logs/_analysis_result_content.html.erb %>
+<%# このパーシャルは voice_condition_log ローカル変数を受け取る %>
+
+<% if voice_condition_log.analyzed_at.blank? && voice_condition_log.analysis_error_message.blank? %>
+  <%# 分析中で、まだエラーメッセージもない場合 %>
+  <div id="analysis-status-<%= voice_condition_log.id %>" class="p-4 text-sm text-purple-700 bg-purple-100 rounded-lg shadow-sm" role="alert">
+    <div class="flex items-center">
+      <svg class="w-5 h-5 mr-2 animate-spin text-purple-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span class="font-medium">分析中：</span> 現在、あなたの音声を分析中です...しばらくお待ちください。
+    </div>
+  </div>
+<% elsif voice_condition_log.analysis_error_message.present? %>
+  <%# 分析エラーがある場合 %>
+  <div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg shadow-sm" role="alert">
+    <span class="font-medium">分析エラー：</span> <%= voice_condition_log.analysis_error_message %>
+  </div>
+<% else %>
+  <%# 分析成功の場合 %>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-gray-800 p-4 bg-gray-50 rounded-lg shadow-sm">
+    <div>
+      <p class="font-medium text-gray-600">声の高さ（平均ピッチ）：</p>
+      <p class="text-lg"><%= number_with_precision(voice_condition_log.pitch_value, precision: 2, strip_insignificant_zeros: true, default: '---') %> Hz</p>
+    </div>
+    <div>
+      <p class="font-medium text-gray-600">話す速さ（テンポ）：</p>
+      <p class="text-lg"><%= number_with_precision(voice_condition_log.tempo_value, precision: 2, strip_insignificant_zeros: true, default: '---') %> BPM</p>
+    </div>
+    <div>
+      <p class="font-medium text-gray-600">声の音量（平均RMS）：</p>
+      <p class="text-lg"><%= number_with_precision(voice_condition_log.volume_value, precision: 2, strip_insignificant_zeros: true, default: '---') %> dB</p>
+    </div>
+    <div>
+      <p class="font-medium text-gray-600">録音時間：</p>
+      <p class="text-lg"><%= number_with_precision(voice_condition_log.duration_seconds, precision: 2, strip_insignificant_zeros: true, default: '---') %> 秒</p>
+    </div>
+    <div class="md:col-span-2">
+      <p class="font-medium text-gray-600">分析日時：</p>
+      <p class="text-lg"><%= voice_condition_log.analyzed_at ? l(voice_condition_log.analyzed_at, format: :long) : '---' %></p>
+    </div>
+  </div>
+<% end %>

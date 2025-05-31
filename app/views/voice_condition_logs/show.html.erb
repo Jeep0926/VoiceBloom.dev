@@ -1,4 +1,46 @@
-<div>
-  <h1 class="font-bold text-4xl">VoiceConditionLogs#show</h1>
-  <p>Find me in app/views/voice_condition_logs/show.html.erb</p>
+<div class="container mx-auto px-4 py-8 max-w-3xl">
+  <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">声のコンディション詳細</h1>
+
+  <div class="bg-white shadow-xl rounded-lg p-6">
+
+    <%# --- 基本情報セクション --- %>
+    <div class="mb-6 pb-6 border-b border-gray-200">
+      <h2 class="text-xl font-semibold text-gray-700 mb-3">基本情報：</h2>
+      <div class="space-y-2 text-gray-800">
+        <p><span class="font-medium">記録ID：</span><%= @voice_condition_log.id %></p>
+        <p><span class="font-medium">記録日時：</span><%= l @voice_condition_log.created_at, format: :long %></p>
+        <% if @voice_condition_log.phrase_text_snapshot.present? %>
+          <p><span class="font-medium">お題フレーズ：</span><%= @voice_condition_log.phrase_text_snapshot %></p>
+        <% end %>
+      </div>
+    </div>
+
+    <%# --- 録音音声セクション --- %>
+    <% if @voice_condition_log.recorded_audio.attached? %>
+      <div class="mb-6 pb-6 border-b border-gray-200">
+        <h2 class="text-xl font-semibold text-gray-700 mb-3">録音された音声：</h2>
+        <audio controls class="w-full rounded">
+          <source src="<%= rails_blob_url(@voice_condition_log.recorded_audio) %>" type="<%= @voice_condition_log.recorded_audio.content_type %>">
+          お使いのブラウザは音声再生に対応していません。
+        </audio>
+      </div>
+    <% end %>
+
+    <%# --- 分析結果セクション --- %>
+    <div data-controller="analysis-updater"
+         data-analysis-updater-record-id-value="<%= @voice_condition_log.id %>"
+         data-analysis-updater-initial-analyzed-at-value="<%= @voice_condition_log.analyzed_at.present?.to_s %>"
+         data-analysis-updater-initial-error-message-value="<%= @voice_condition_log.analysis_error_message.present?.to_s %>">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">分析結果：</h2>
+      <div data-analysis-updater-target="resultsArea">
+        <%= render 'voice_condition_logs/analysis_result_content', voice_condition_log: @voice_condition_log %>
+      </div>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
+      <%#= link_to '一覧に戻る', voice_condition_logs_path, class: "inline-block px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
+      <%= link_to '記録ページに戻る', new_voice_condition_log_path, class: "inline-block px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
+    </div>
+
+  </div>
 </div>

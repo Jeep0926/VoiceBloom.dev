@@ -5,6 +5,7 @@ Rails.application.routes.draw do
     registrations: 'users/registrations', # registrationsコントローラーのパスを指定
     sessions: 'users/sessions'
   }
+  mount ActionCable.server => '/cable'
   root 'home#index'
   get 'up' => 'rails/health#show', as: :rails_health_check
 

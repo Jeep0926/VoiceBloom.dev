@@ -75,3 +75,7 @@ gem 'aws-sdk-s3', require: false
 gem 'devise'
 
 gem 'discard'
+
+gem 'faraday'
+
+gem 'faraday-multipart' # ファイルアップロードに必要
