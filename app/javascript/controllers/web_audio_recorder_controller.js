@@ -254,27 +254,34 @@ export default class extends Controller {
         method: "POST",
         headers: {
           "X-CSRF-Token": csrfToken
-          // "Accept": "application/json" // もしRails側がJSONを返すなら
         },
         body: formData
       });
 
       if (response.ok) {
-        // const result = await response.json(); // もしRails側がJSONを返すなら
-        console.log("音声データ送信成功:", response);
-        if (this.hasStatusTarget) this.statusTarget.textContent = "音声データを送信しました！";
-        // 必要であれば、成功後に特定のページにリダイレクトするなどの処理
-        // window.location.href = result.redirect_url; // 例
-        // 今回はダミーの create アクションなので、リダイレクトはRails側で行う
+        console.log("音声データ送信成功。レスポンス:", response);
+        // response.url は fetch がリダイレクトに追従した場合、最終的なURL (showページのURL) を指します。
+        // response.redirected は、リダイレクトが発生したかどうかを示します。
+        if (this.hasStatusTarget) this.statusTarget.textContent = "送信成功！結果ページに移動します...";
+
+        if (response.redirected) {
+          // fetchがリダイレクトに追従した場合、response.urlがリダイレクト後のURL
+          window.location.href = response.url;
+        } else {
+          // もしリダイレクトが発生せず、かつレスポンスがOKだった場合
+          // (通常、Railsの create -> redirect_to のパターンではここは通らないはずだが、念のため)
+          // もし response.url が期待通りでなければ、ここで何らかのフォールバックやエラー表示が必要。
+          console.warn("リダイレクトが発生しませんでしたが、レスポンスはOKでした。URL:", response.url);
+        }
       } else {
         console.error("音声データ送信失敗:", response);
-        const errorText = await response.text();
-        console.error("エラー詳細:", errorText);
-        if (this.hasStatusTarget) this.statusTarget.textContent = `エラー: 送信に失敗しました (${response.status})`;
+        const errorText = await response.text(); // エラーレスポンスのボディを取得
+        console.error("エラー詳細:", errorText);  // サーバーからのHTMLエラーページなどがここに入る
+        if (this.hasStatusTarget) this.statusTarget.textContent = `エラー： 送信に失敗しました (${response.status})。ページをリロードしてください。`;
       }
     } catch (error) {
-      console.error("音声データ送信中にエラーが発生しました:", error);
-      if (this.hasStatusTarget) this.statusTarget.textContent = "エラー: 送信中に問題が発生しました。";
+      console.error("音声データ送信中にネットワークエラー等が発生しました:", error);
+      if (this.hasStatusTarget) this.statusTarget.textContent = "エラー： 送信中に問題が発生しました。";
     }
   }
 
