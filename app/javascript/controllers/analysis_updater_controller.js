@@ -20,6 +20,7 @@ export default class extends Controller {
       return;
     }
 
+    // 初回表示時に分析済みでもエラーでもない場合のみ購読
     if (!alreadyAnalyzed && !hasInitialError) {
       this.subscribeToChannel();
     } else {
@@ -28,53 +29,74 @@ export default class extends Controller {
   }
 
   subscribeToChannel() {
-    if (this.subscription) { // 既に購読中なら何もしないか、一度解除して再購読
+    // 既に何らかの理由で購読中の場合、念のため古い購読を解除
+    if (this.subscription) {
+      console.log(`Unsubscribing previous subscription before creating a new one for ID ${this.recordIdValue}.`);
       this.subscription.unsubscribe();
+      this.subscription = null; // 明示的にnullに戻す
     }
 
     console.log(`Subscribing to VoiceConditionLogAnalysisChannel for ID ${this.recordIdValue}`);
     this.subscription = consumer.subscriptions.create(
-      { channel: "VoiceConditionLogAnalysisChannel", id: this.recordIdValue }, // サーバーサイドのparams[:id]に渡す
+      { channel: "VoiceConditionLogAnalysisChannel", id: this.recordIdValue },
       {
         connected: () => {
           console.log(`Successfully connected to VoiceConditionLogAnalysisChannel for ID ${this.recordIdValue}`);
-          // 接続成功時に、万が一のために現在の状態を一度取得するポーリングを1回だけ行うことも検討可能 (今回は省略)
+          // 接続成功時に現在の状態を一度だけ取得する
+          this.requestCurrentAnalysisResult();
         },
         disconnected: (reason) => {
           console.log(`Disconnected from VoiceConditionLogAnalysisChannel for ID ${this.recordIdValue}. Reason:`, reason);
+          // 予期せぬ切断の場合、再接続ロジックをここに入れることも検討可能 (今回は省略)
         },
         received: (data) => {
+          console.log(`!!!! AnalysisUpdaterController: RECEIVED METHOD CALLED for record ${this.recordIdValue} !!!!`);
           console.log(`Received data for record ${this.recordIdValue}:`, data);
+
           if (data.html_content) {
             this.resultsAreaTarget.innerHTML = data.html_content;
-            console.log(`Updated resultsArea for record ${this.recordIdValue} via ActionCable.`);
-            // 結果を受け取ったら購読を解除しても良い場合がある
+            console.log(`Updated resultsArea for record ${this.recordIdValue} with received html_content.`);
+
+            // 分析結果 (成功またはエラーメッセージを含むHTML) を受信し表示が完了したので、
+            // この特定の voice_condition_log に対する購読は解除する。
+            // これにより、同じページに留まり続けた場合に不要な購読が残るのを防ぐ。
+            // 次の録音・分析では新しいページに遷移し、新しいコントローラーインスタンスが新しい購読を行う想定。
+            this.unsubscribeFromChannel();
+
+          } else {
+            // data.html_content がない場合は、予期せぬデータ形式の可能性がある
+            console.warn(`Received data for record ${this.recordIdValue} without html_content:`, data);
+            // この場合も、何らかの終端状態とみなし、購読を解除するかどうか検討
             // this.unsubscribeFromChannel();
-          } else if (data.error_message) { // ジョブがエラーメッセージをブロードキャストする場合
-            this.resultsAreaTarget.innerHTML = `<div class="p-4 text-sm text-red-700 bg-red-100 rounded-lg shadow-sm" role="alert"><span class="font-medium">分析エラー：</span> ${data.error_message}</div>`;
-            this.unsubscribeFromChannel();
-          }
-          // "分析中"でなくなったことを確認してunsubscribeするロジックをここに含めることも可能
-          const analysisInProgressElement = this.resultsAreaTarget.querySelector('.text-blue-700 .font-medium');
-          const analysisErrorElement = this.resultsAreaTarget.querySelector('.text-red-700 .font-medium');
-          if (!analysisInProgressElement || analysisErrorElement) {
-            this.unsubscribeFromChannel();
           }
         }
       }
     );
   }
 
+  requestCurrentAnalysisResult() {
+    // 購読が確立されていることを確認してから perform を呼び出す
+    if (this.subscription && this.subscription.consumer.connection.isOpen()) {
+      console.log(`Requesting current analysis state for ID ${this.recordIdValue} via ActionCable perform`);
+      this.subscription.perform('request_current_state');
+    } else {
+      console.warn(`Cannot request current analysis state for ID ${this.recordIdValue}: Subscription not active or connection closed.`);
+      // 購読がまだ確立されていないか、既に閉じている場合は、少し待ってから再試行するロジックを検討することも可能 (今回は省略)
+    }
+  }
+
   unsubscribeFromChannel() {
     if (this.subscription) {
       this.subscription.unsubscribe();
-      this.subscription = null;
+      this.subscription = null; // 購読解除後は subscription オブジェクトをクリア
       console.log(`Unsubscribed from VoiceConditionLogAnalysisChannel for ID ${this.recordIdValue}`);
     }
   }
 
   disconnect() {
+    // StimulusコントローラーがDOMからデタッチされるときに呼ばれる
+    // 確実に購読を解除する
+    console.log(`AnalysisUpdaterController for ID ${this.recordIdValue} disconnecting...`);
     this.unsubscribeFromChannel();
-    console.log(`AnalysisUpdaterController for ID ${this.recordIdValue} disconnected.`);
   }
 }

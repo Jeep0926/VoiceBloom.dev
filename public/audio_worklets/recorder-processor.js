@@ -1,57 +1,62 @@
+// public/audio_worklets/recorder-processor.js
 class RecorderProcessor extends AudioWorkletProcessor {
   constructor(options) {
-    super(options);
-    this._bufferSize = options.processorOptions.bufferSize || 16384; // チャンクサイズ
-    this._channelCount = options.processorOptions.channelCount || 1;
-    this._recording = false;
-    this._internalBuffer = [];
-    this._bytesWritten = 0;
-
+    super();
+    
+    this.bufferSize = options.processorOptions?.bufferSize || 16384;
+    this.channelCount = options.processorOptions?.channelCount || 1;
+    this.buffer = new Float32Array(this.bufferSize);
+    this.bufferIndex = 0;
+    this.isRecording = false;
+    
     this.port.onmessage = (event) => {
       if (event.data.command === 'start') {
-        this._recording = true;
-        this._internalBuffer = [];
-        this._bytesWritten = 0;
+        this.isRecording = true;
+        console.log('RecorderProcessor: Recording started');
       } else if (event.data.command === 'stop') {
-        this._recording = false;
-        if (this._internalBuffer.length > 0) {
-          this.flushBuffer();
-        }
+        this.isRecording = false;
+        this.flushBuffer();
+        console.log('RecorderProcessor: Recording stopped');
         this.port.postMessage({ type: 'status', message: 'stopped' });
       }
     };
   }
-
+  
   process(inputs, outputs, parameters) {
-    if (!this._recording) return true;
-    const inputChannelData = inputs[0]?.[0]; // Optional chaining for safety
-
-    if (inputChannelData && inputChannelData.length > 0) {
-      this._internalBuffer.push(new Float32Array(inputChannelData));
-      this._bytesWritten += inputChannelData.length;
-
-      let currentBufferedSamples = 0;
-      this._internalBuffer.forEach(buf => currentBufferedSamples += buf.length);
-
-      if (currentBufferedSamples >= this._bufferSize) {
-        this.flushBuffer();
+    if (!this.isRecording) {
+      return true;
+    }
+    
+    const input = inputs[0];
+    if (input && input.length > 0) {
+      const inputChannel = input[0]; // モノラル録音のため最初のチャンネルのみ使用
+      
+      for (let i = 0; i < inputChannel.length; i++) {
+        this.buffer[this.bufferIndex] = inputChannel[i];
+        this.bufferIndex++;
+        
+        // バッファが満杯になったらメインスレッドに送信
+        if (this.bufferIndex >= this.bufferSize) {
+          this.flushBuffer();
+        }
       }
     }
-    return true;
+    
+    return true; // プロセッサーを継続
   }
-
+  
   flushBuffer() {
-    if (this._internalBuffer.length === 0) return;
-    let totalLength = 0;
-    this._internalBuffer.forEach(buffer => totalLength += buffer.length);
-    const result = new Float32Array(totalLength);
-    let offset = 0;
-    this._internalBuffer.forEach(buffer => {
-      result.set(buffer, offset);
-      offset += buffer.length;
-    });
-    this.port.postMessage({ type: 'audioData', buffer: result.buffer }, [result.buffer]);
-    this._internalBuffer = [];
+    if (this.bufferIndex > 0) {
+      // バッファに蓄積されたデータをメインスレッドに送信
+      const dataToSend = this.buffer.slice(0, this.bufferIndex);
+      this.port.postMessage({
+        type: 'audioData',
+        buffer: dataToSend.buffer.slice(0, this.bufferIndex * 4) // Float32Arrayなので4倍
+      });
+      
+      this.bufferIndex = 0; // バッファをリセット
+    }
   }
 }
+
 registerProcessor('recorder-processor', RecorderProcessor);

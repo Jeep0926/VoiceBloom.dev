@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  mount ActionCable.server => '/cable'
   devise_for :users, controllers: {
     registrations: 'users/registrations', # registrationsコントローラーのパスを指定
     sessions: 'users/sessions'
   }
-  mount ActionCable.server => '/cable'
   root 'home#index'
   get 'up' => 'rails/health#show', as: :rails_health_check
 
