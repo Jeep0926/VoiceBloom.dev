@@ -1,1 +1,27 @@
 /* Application styles */
+
+/* 音声プレイヤーのタイムライン（プログレスバー）を広げるためのスタイル */
+/* 主にWebKit/Blink系ブラウザ (Chrome, Safari, Edgeなど) で効果があります */
+audio::-webkit-media-controls-panel {
+  display: flex; /* デフォルトでflexであることが多いですが、明示することも可能です */
+  width: 100%; /* パネル全体が幅いっぱいであることを確認 */
+}
+
+audio::-webkit-media-controls-timeline {
+  flex-grow: 1; /* ★これが重要：タイムラインが利用可能なスペースを埋めるようにします */
+  min-width: 75px; /* プログレスバーがあまりにも短くならないように最小幅を指定 (任意) */
+  /* background-color: rgba(255, 0, 0, 0.1); */ /* デバッグ用：タイムラインの範囲を赤っぽくして視覚化 */
+}
+
+/* Firefoxの場合、プログレスバーの直接的な幅調整は難しいことが多いですが、
+   もし試すならば以下のようなセレクタがありますが、効果は限定的かもしれません。 */
+/*
+audio::-moz-range-track {
+  // Firefoxのプログレスバーのトラック部分
+  // background-color: lightblue; // デバッグ用
+}
+audio::-moz-range-progress {
+  // Firefoxのプログレスバーの進捗部分
+  // background-color: blue; // デバッグ用
+}
+*/

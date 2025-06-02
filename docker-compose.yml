@@ -41,6 +41,14 @@ services:
     environment:
       PYTHON_ENV: development
 
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   postgres_data:
   bundle_cache:
+  redis_data:

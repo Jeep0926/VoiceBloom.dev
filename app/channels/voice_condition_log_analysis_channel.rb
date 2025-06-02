@@ -8,18 +8,54 @@ class VoiceConditionLogAnalysisChannel < ApplicationCable::Channel
     # 認証を追加する場合はここで current_user と voice_condition_log.user を比較など
     if voice_condition_log
       stream_from "voice_condition_log_analysis_#{params[:id]}"
-      Rails.logger.info "Client subscribed to VoiceConditionLogAnalysisChannel for ID #{params[:id]}"
     else
       reject # 購読を拒否
-      Rails.logger.warn(
-        "Client failed to subscribe: VoiceConditionLog with ID #{params[:id]} not found or unauthorized."
-      )
     end
   end
 
   def unsubscribed
-    # Any cleanup needed when channel is unsubscribed
     stop_all_streams # 全てのストリームからの購読を停止
-    Rails.logger.info "Client unsubscribed from VoiceConditionLogAnalysisChannel (was streaming for ID #{params[:id]})"
+  end
+
+  # ★★★ 追加: クライアントからの要求に応じて現在の状態を送信するアクション ★★★
+  def request_current_state
+    voice_condition_log = find_voice_condition_log
+    return log_analysis_not_complete unless analysis_complete?(voice_condition_log)
+
+    transmit_current_state(voice_condition_log)
+    log_state_transmitted
+  end
+
+  private
+
+  def find_voice_condition_log
+    VoiceConditionLog.find_by(id: params[:id])
+  end
+
+  def analysis_complete?(voice_condition_log)
+    voice_condition_log&.analyzed_at.present? ||
+      voice_condition_log&.analysis_error_message.present?
+  end
+
+  def transmit_current_state(voice_condition_log)
+    html_content = ApplicationController.render(
+      partial: 'voice_condition_logs/analysis_result_content',
+      locals: { voice_condition_log: voice_condition_log },
+      layout: false
+    )
+    transmit({ html_content: html_content })
+  end
+
+  def log_state_transmitted
+    Rails.logger.info(
+      "Transmitted current state to client for VoiceConditionLog ID #{params[:id]} on request"
+    )
+  end
+
+  def log_analysis_not_complete
+    Rails.logger.info(
+      "Current state requested for VoiceConditionLog ID #{params[:id]}, " \
+      'but analysis not yet complete or no error.'
+    )
   end
 end
