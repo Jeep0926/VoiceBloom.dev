@@ -12,9 +12,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rails
-      target: build_deps
+      target: development
     working_dir: /app
-    command: bash -c "bundle install && yarn install && bundle exec rails db:prepare && rm -f tmp/pids/server.pid && ./bin/dev"
+    command: bash -c "bundle exec rails db:prepare && rm -f tmp/pids/server.pid && ./bin/dev"
     volumes:
       - .:/app
       - bundle_cache:/app/vendor/bundle

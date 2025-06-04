@@ -3,6 +3,9 @@ ARG NODE_MAJOR=20
 
 # 1. ベースイメージ
 FROM ruby:${RUBY_VERSION}-slim AS base
+ENV LANG C.UTF-8
+ENV RAILS_ENV development
+ENV BUNDLE_PATH="vendor/bundle"
 
 # 2. ビルドに必要なOSレベルの依存関係をインストールするステージ
 FROM base AS build_deps
@@ -12,6 +15,7 @@ RUN apt-get update -qq \
     && apt-get install -y --no-install-recommends \
        build-essential \
        curl \
+       git \
        gnupg \
        libpq-dev \
        bash \
@@ -36,26 +40,39 @@ RUN npm install -g yarn
 # クリーンアップ
 RUN rm -rf /var/lib/apt/lists/*
 
-# 3. BundlerでGemをインストールするステージ
-FROM build_deps AS bundle_install
+# 3. 開発用ステージ
+FROM build_deps AS development
+WORKDIR /app
+# Gemfile* を先にコピーして bundle install を実行（キャッシュ効率化のため）
+COPY Gemfile Gemfile.lock ./
+ENV BUNDLE_WITHOUT=""
+RUN bundle install --jobs $(nproc) --retry 3
+
+# JavaScriptの依存関係をインストール
+COPY package.json yarn.lock ./
+RUN yarn install
+
+# アプリケーションコード全体をコピー
+COPY . .
+# このステージは ./bin/dev でRailsサーバーやJSビルドを起動する準備が整った状態
+
+# 4. 本番用Gemをインストールするステージ
+FROM build_deps AS bundle_install_production
 WORKDIR /app
 COPY Gemfile Gemfile.lock ./
-# 本番環境用の設定で、Gemをvendor/bundleにインストール
 ENV BUNDLE_WITHOUT="development:test" \
     BUNDLE_DEPLOYMENT="1" \
     BUNDLE_PATH="vendor/bundle" \
     BUNDLE_CLEAN="true"
 RUN bundle install --jobs $(nproc) --retry 3
 
-# 4. アプリケーションコードをコピーし、アセットをビルドするステージ
-FROM build_deps AS assets_builder
+# 5. アセットをビルドするステージ
+FROM build_deps AS assets_builder_production
 WORKDIR /app
 COPY . .
-COPY --from=bundle_install /app/vendor/bundle /app/vendor/bundle
+COPY --from=bundle_install_production /app/vendor/bundle /app/vendor/bundle
 
 ENV RAILS_ENV="production"
-ENV BUNDLE_PATH="vendor/bundle"
-ENV BUNDLE_WITHOUT="development:test"
 
 # ビルドを通過させるためのダミーを設定
 ENV CLOUDFLARE_ACCOUNT_ID="dummy-account-id"
@@ -79,7 +96,7 @@ RUN yarn build
 # アセットプリコンパイル
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
-# 5. 最終的な実行イメージステージ
+# 6. 最終的な実行イメージステージ
 FROM base AS final
 WORKDIR /app
 
