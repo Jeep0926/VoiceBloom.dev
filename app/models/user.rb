@@ -11,6 +11,8 @@ class User < ApplicationRecord
 
   has_one_attached :profile_image
   has_many :voice_condition_logs, dependent: :destroy
+  has_many :practice_session_logs, dependent: :destroy
+  has_many :practice_attempt_logs, dependent: :destroy # 直接持つ場合、またはセッション経由で持つ場合は不要
 
   # 論理削除したユーザーを検索対象に含めないため
   default_scope { kept }

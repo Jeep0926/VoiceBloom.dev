@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_05_30_111949) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_04_051700) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,44 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_30_111949) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "practice_attempt_logs", force: :cascade do |t|
+    t.bigint "practice_session_log_id", null: false
+    t.bigint "practice_exercise_id", null: false
+    t.bigint "user_id", null: false
+    t.integer "score"
+    t.text "feedback_text"
+    t.integer "attempt_number"
+    t.datetime "attempted_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["practice_exercise_id"], name: "index_practice_attempt_logs_on_practice_exercise_id"
+    t.index ["practice_session_log_id"], name: "index_practice_attempt_logs_on_practice_session_log_id"
+    t.index ["user_id"], name: "index_practice_attempt_logs_on_user_id"
+  end
+
+  create_table "practice_exercises", force: :cascade do |t|
+    t.string "title", null: false
+    t.text "text_content", null: false
+    t.string "category"
+    t.integer "difficulty_level"
+    t.boolean "is_active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["is_active", "category"], name: "index_practice_exercises_on_is_active_and_category"
+    t.index ["title"], name: "index_practice_exercises_on_title"
+  end
+
+  create_table "practice_session_logs", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.integer "total_score"
+    t.datetime "session_started_at", null: false
+    t.datetime "session_ended_at"
+    t.boolean "is_shared_on_sns", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_practice_session_logs_on_user_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -65,7 +103,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_30_111949) do
 
   create_table "voice_condition_logs", force: :cascade do |t|
     t.bigint "user_id", null: false
-    t.text "phrase_text_snapshot"
+    t.text "phrase_text_snapshot", null: false
     t.datetime "analyzed_at"
     t.float "pitch_value"
     t.float "tempo_value"
@@ -79,5 +117,9 @@ ActiveRecord::Schema[7.2].define(version: 2025_05_30_111949) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "practice_attempt_logs", "practice_exercises"
+  add_foreign_key "practice_attempt_logs", "practice_session_logs"
+  add_foreign_key "practice_attempt_logs", "users"
+  add_foreign_key "practice_session_logs", "users"
   add_foreign_key "voice_condition_logs", "users"
 end
