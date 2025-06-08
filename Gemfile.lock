@@ -45,6 +45,12 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
+    active_storage_validations (3.0.0)
+      activejob (>= 6.1.4)
+      activemodel (>= 6.1.4)
+      activestorage (>= 6.1.4)
+      activesupport (>= 6.1.4)
+      marcel (>= 1.0.3)
     activejob (7.2.2.1)
       activesupport (= 7.2.2.1)
       globalid (>= 0.3.6)
@@ -130,6 +136,9 @@ GEM
       activesupport (>= 6.1)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
+    inline_svg (1.10.0)
+      activesupport (>= 3.0)
+      nokogiri (>= 1.6)
     io-console (0.8.0)
     irb (1.15.2)
       pp (>= 0.6.0)
@@ -339,6 +348,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  active_storage_validations
   aws-sdk-s3
   bootsnap
   debug
@@ -347,6 +357,7 @@ DEPENDENCIES
   dockerfile-rails (>= 1.7)
   faraday
   faraday-multipart
+  inline_svg
   jbuilder
   jsbundling-rails
   pg (~> 1.1)

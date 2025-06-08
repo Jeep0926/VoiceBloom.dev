@@ -10,7 +10,7 @@ class PracticeAttemptLog < ApplicationRecord
   # --- recorded_audio のバリデーション ---
   validates :recorded_audio, presence: true # 録音音声は必須
   validates :recorded_audio, content_type: {
-    in: ['audio/wav', 'audio/wave', 'audio/x-wav', 'audio/mpeg', 'audio/mp3'],
+    in: ['audio/x-wav', 'audio/mpeg'],
     message: 'はWAVまたはMP3形式のファイルをアップロードしてください。' # rubocop:disable Rails/I18nLocaleTexts
   }
   validates :recorded_audio, size: {

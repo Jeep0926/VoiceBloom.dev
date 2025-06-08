@@ -2,6 +2,7 @@
 
 class VoiceConditionLogsController < ApplicationController
   before_action :authenticate_user! # ログイン必須にする
+  layout 'base_view', only: %i[new show]
 
   def show
     # (このアクションは後のタスクで、分析結果表示を実装)

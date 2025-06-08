@@ -79,3 +79,7 @@ gem 'discard'
 gem 'faraday'
 
 gem 'faraday-multipart' # ファイルアップロードに必要
+
+gem 'active_storage_validations' # content_type: { ... } というバリデーションのために必要
+
+gem 'inline_svg'

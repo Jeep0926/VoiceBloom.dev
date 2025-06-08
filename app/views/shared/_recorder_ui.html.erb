@@ -1,0 +1,41 @@
+<%# --- 録音UI --- %>
+<div class="text-center">
+  <%# 中央の大きなマイクアイコンのコンテナ %>
+  <div class="flex items-center justify-center mb-2">
+    <button data-action="click->web-audio-recorder#startRecording"
+            class="w-40 h-40 rounded-full bg-white shadow-lg flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+      <%# ↓ spanの中に image_tag を使ってSVGアイコンを配置します %>
+      <span data-web-audio-recorder-target="recordIndicatorIcon">
+        <%= inline_svg_tag 'mic.svg',
+              class: 'h-16 w-16 text-purple-600',
+              data: { web_audio_recorder_target: "micIcon" } %>
+      </span>
+    </button>
+  </div>
+  <p data-web-audio-recorder-target="recordIndicatorText" class="text-gray-600 text-lg mb-6">タップして録音開始</p>
+
+  <div class="h-14">
+    <button data-action="click->web-audio-recorder#startRecording" data-web-audio-recorder-target="startButton" class="w-full px-6 py-4 text-base font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition">
+      <span class="inline-flex items-center justify-center">
+        <%# ↓ ボタン内のSVGも image_tag に置き換えます %>
+        <%= inline_svg_tag 'mic.svg', class: 'h-6 w-6 mr-2', 'aria-hidden': 'true' %>
+        録音を開始する
+      </span>
+    </button>
+    <%# 停止ボタンは変更なし %>
+    <button data-action="click->web-audio-recorder#stopRecording" data-web-audio-recorder-target="stopButton" class="hidden w-full px-6 py-4 text-base font-semibold text-white bg-red-500 rounded-lg shadow-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition">
+      <span class="inline-flex items-center justify-center">
+        <svg class="h-6 w-6 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M4.5 7.5a3 3 0 013-3h9a3 3 0 013 3v9a3 3 0 01-3-3h-9a3 3 0 01-3-3v-9z" clip-rule="evenodd" /></svg>
+        録音を停止する
+      </span>
+    </button>
+  </div>
+
+  <p data-web-audio-recorder-target="statusText" class="text-center text-gray-500 text-sm mt-4 h-5"></p>
+
+  <div data-web-audio-recorder-target="playbackArea" class="mt-4"></div>
+</div>
+
+<p class="text-center text-gray-500 text-sm mt-4">
+  静かな環境で、マイクに向かってはっきりと発音してください
+</p>
