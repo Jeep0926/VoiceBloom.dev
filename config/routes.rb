@@ -10,6 +10,13 @@ Rails.application.routes.draw do
   get 'up' => 'rails/health#show', as: :rails_health_check
 
   resources :voice_condition_logs, only: %i[new create show]
+
+  resources :practice_session_logs, only: %i[create show] do
+    # ER図より、PracticeAttemptLog（試行ログ）は必ず PracticeSessionLog（セッションログ）に属する。
+    # 「セッション」を管理する PracticeSessionLog（親） と、「試行」を管理する PracticeAttemptLog（子）は親子関係になる。
+    # この関係をURLでも表現するために入れ子にする。
+    resources :practice_attempt_logs, only: %i[new create show]
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # 200 OK を返すだけのヘルスチェック用エンドポイント
   # get '/up', to: proc { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }

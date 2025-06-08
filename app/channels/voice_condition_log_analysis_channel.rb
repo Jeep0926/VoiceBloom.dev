@@ -13,17 +13,23 @@ class VoiceConditionLogAnalysisChannel < ApplicationCable::Channel
     end
   end
 
-  def unsubscribed
-    stop_all_streams # 全てのストリームからの購読を停止
+  # クライアントからの `perform('request_current_state')` に応答するメソッド
+  def request_current_state
+    voice_condition_log = VoiceConditionLog.find_by(id: params[:id])
+
+    # 認証チェック（subscribed と同様）
+    return unless voice_condition_log # && voice_condition_log.user == current_user
+
+    if analysis_complete?(voice_condition_log)
+      transmit_current_state(voice_condition_log)
+      log_state_transmitted
+    else
+      log_analysis_not_complete
+    end
   end
 
-  # ★★★ 追加: クライアントからの要求に応じて現在の状態を送信するアクション ★★★
-  def request_current_state
-    voice_condition_log = find_voice_condition_log
-    return log_analysis_not_complete unless analysis_complete?(voice_condition_log)
-
-    transmit_current_state(voice_condition_log)
-    log_state_transmitted
+  def unsubscribed
+    stop_all_streams # 全てのストリームからの購読を停止
   end
 
   private

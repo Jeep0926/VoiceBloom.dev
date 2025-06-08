@@ -1,38 +1,23 @@
-<div class="max-w-2xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-  <h1 class="text-3xl font-bold text-purple-700 mb-6 text-center">声のコンディションを確認</h1>
+<%# ヘッダーに表示する動的なタイトルを設定 %>
+<% content_for :header_title, "声のコンディション確認" %>
 
-  <div class="bg-white shadow-md rounded-lg p-6 mb-6">
-    <h2 class="text-xl font-semibold text-gray-700 mb-3">今日のお題</h2>
-    <p id="current-phrase" class="text-lg text-gray-800 bg-gray-100 p-4 rounded-md">
-      <%= @fixed_phrase %> <%# コントローラーで設定した固定フレーズを表示 %>
-    </p>
+<%# --- メインコンテンツ --- %>
+<%# data-controller と data-***-value を追加 %>
+<div class="container mx-auto px-4 py-4 max-w-sm"
+     data-controller="web-audio-recorder"
+     data-web-audio-recorder-post-url-value="<%= voice_condition_logs_path %>"
+     data-web-audio-recorder-form-field-name-value="voice_condition_log[recorded_audio]">
+
+  <%# --- お題カード --- %>
+  <div class="bg-white rounded-2xl shadow p-6 mb-8 text-center">
+    <h2 class="text-sm text-gray-500 mb-2">今日のお題</h2>
+    <%# JavaScriptがお題テキストを取得するために、このidは重要です %>
+    <p id="current-phrase" class="text-2xl font-bold text-gray-800 mb-4"><%= @fixed_phrase %></p>
+    <p class="text-xs text-gray-400">最大5秒の録音です</p>
   </div>
 
-  <%# 録音コントロールエリア %>
-  <div class="text-center space-y-4" data-controller="web-audio-recorder">
-    <div>
-      <button type="button"
-              class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md transition duration-150 ease-in-out"
-              data-action="click->web-audio-recorder#startRecording"
-              data-web-audio-recorder-target="startButton">
-        🎤 録音を開始する
-      </button>
-      <button type="button"
-              class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-md transition duration-150 ease-in-out hidden"
-              data-action="click->web-audio-recorder#stopRecording" 
-              data-web-audio-recorder-target="stopButton">
-        ⏹️ 録音を停止する
-      </button>
-    </div>
-    <div class="text-gray-600 min-h-[24px]" data-web-audio-recorder-target="status">
-      録音を開始するボタンを押してください
-    </div>
-    <div data-web-audio-recorder-target="playbackArea">
-      <%# 録音音声再生UI %>
-    </div>
-  </div>
+  <%# --- 録音機能セクション (共通パーシャルを呼び出す) --- %>
+  <%# localsでのデータ渡しが不要になり、シンプルに %>
+  <%= render 'shared/recorder_ui' %>
 
-  <div class="mt-8 text-center">
-    <%= link_to "ホームに戻る", root_path, class: "text-purple-600 hover:text-purple-800" %>
-  </div>
 </div>
