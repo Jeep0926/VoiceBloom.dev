@@ -19,7 +19,8 @@ export default class extends Controller {
   static values = {
     postUrl: String,           // データの送信先URL
     formFieldName: String,     // フォームデータに含める音声データのキー名
-    // exerciseId: String,     // (任意) 将来的に使う可能性
+    sendPhraseSnapshot: { type: Boolean, default: true }, // デフォルトは送信する
+    exerciseId: String     // お題のID（フォームデータ作成時に2問目以降が表示されるために必要）
   }
 
   // --- プロパティの初期化 ---
@@ -71,11 +72,11 @@ export default class extends Controller {
       };
     }
   }
-  
+
   // --- お手本音声を再生するアクション ---
   playSampleAudio() {
     if (!this.hasSampleAudioPlayerTarget || this.isRecording) return;
-    
+
     if (this.sampleAudioPlayerTarget.paused) {
       this.sampleAudioPlayerTarget.play();
     } else {
@@ -142,7 +143,7 @@ export default class extends Controller {
     this.mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
     this.rawPcmData = [];
     this.latestRecordingBlob = null;
-    
+
     try {
       const workletURL = '/audio_worklets/recorder-processor.js';
       await this.audioContext.audioWorklet.addModule(workletURL);
@@ -162,7 +163,7 @@ export default class extends Controller {
 
       this.recordingStartTime = Date.now();
       this.setRecordingUI(); // UIを「録音中」状態に更新
-      
+
       this.autoStopTimer = setTimeout(() => {
         if (this.isRecording) this.stopRecording();
       }, 5000);
@@ -177,13 +178,13 @@ export default class extends Controller {
 
   async stopRecording() {
     if (!this.isRecording) return;
-    
+
     // UIの即時フィードバック
     if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "録音停止、データを処理中...";
     // タイマー類をクリア
     if (this.autoStopTimer) clearTimeout(this.autoStopTimer);
     if (this.recordingTimer) clearInterval(this.recordingTimer);
-    
+
     this.isRecording = false; // フラグを更新
 
     if (this.audioWorkletNode) {
@@ -213,7 +214,7 @@ export default class extends Controller {
       }
     }, 200);
   }
-  
+
   // ★ 6. データ送信ロジックを汎用化
   async sendAudioData(blob) {
     if (!this.hasPostUrlValue || !this.hasFormFieldNameValue) {
@@ -226,10 +227,20 @@ export default class extends Controller {
     const formData = new FormData();
     formData.append(this.formFieldNameValue, blob, "recording.wav");
 
-    const phraseElement = document.getElementById("current-phrase");
-    if (phraseElement) {
-      const snapshotKey = this.formFieldNameValue.replace(/\[recorded_audio\]$/, '[phrase_text_snapshot]');
-      formData.append(snapshotKey, phraseElement.textContent.trim());
+    // exercise_id があれば、それもFormDataに追加する
+    if (this.hasExerciseIdValue) {
+      // practice_attempt_log[practice_exercise_id] というキーで送信
+      const exerciseIdKey = this.formFieldNameValue.replace(/\[recorded_audio\]$/, '[practice_exercise_id]');
+      formData.append(exerciseIdKey, this.exerciseIdValue);
+    }
+
+    // sendPhraseSnapshotValue が true の場合のみ、スナップショットを送信する
+    if (this.sendPhraseSnapshotValue) {
+      const phraseElement = document.getElementById("current-phrase");
+      if (phraseElement) {
+        const snapshotKey = this.formFieldNameValue.replace(/\[recorded_audio\]$/, '[phrase_text_snapshot]');
+        formData.append(snapshotKey, phraseElement.textContent.trim());
+      }
     }
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content;

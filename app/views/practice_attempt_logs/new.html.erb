@@ -7,7 +7,9 @@
 <div class="container mx-auto px-4 py-4 max-w-sm"
      data-controller="web-audio-recorder"
      data-web-audio-recorder-post-url-value="<%= practice_session_log_practice_attempt_logs_path(@practice_session_log) %>"
-     data-web-audio-recorder-form-field-name-value="practice_attempt_log[recorded_audio]">
+     data-web-audio-recorder-form-field-name-value="practice_attempt_log[recorded_audio]"
+     data-web-audio-recorder-send-phrase-snapshot-value="false"
+     data-web-audio-recorder-exercise-id-value="<%= @practice_exercise.id %>">
 
   <%# --- プログレスバー --- %>
   <div class="w-full bg-gray-200 rounded-full h-1.5 mb-6">
