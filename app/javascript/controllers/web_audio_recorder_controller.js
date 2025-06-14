@@ -12,7 +12,11 @@ export default class extends Controller {
     "sampleAudioPlayer",    // <audio>タグのお手本プレイヤー (通常は非表示)
     "recordIndicatorIcon",  // 録音状態を示す中央のアイコン (マイク/波形)
     "recordIndicatorText",  // 録音状態を示す中央下のテキスト
-    "micIcon"               // マイクのアイコン
+    "micIcon",              // マイクのアイコン
+    "recorder",             // 録音UI全体を囲むコンテナ
+    "result",               // 評価結果UI全体を囲むコンテナ
+    "nextButton",           // 「次へ進む」ボタン
+    "finishButton"          // 「結果をみる」ボタン
   ]
 
   // 2. ビューから値を受け取るためのValueを追加
@@ -20,7 +24,9 @@ export default class extends Controller {
     postUrl: String,           // データの送信先URL
     formFieldName: String,     // フォームデータに含める音声データのキー名
     sendPhraseSnapshot: { type: Boolean, default: true }, // デフォルトは送信する
-    exerciseId: String     // お題のID（フォームデータ作成時に2問目以降が表示されるために必要）
+    exerciseId: String,     // お題のID（フォームデータ作成時に2問目以降が表示されるために必要）
+    attemptNumber: Number,
+    finishUrl: String
   }
 
   // --- プロパティの初期化 ---
@@ -218,23 +224,17 @@ export default class extends Controller {
   // ★ 6. データ送信ロジックを汎用化
   async sendAudioData(blob) {
     if (!this.hasPostUrlValue || !this.hasFormFieldNameValue) {
-      console.error("送信先URL(post-url-value)またはフォーム名(form-field-name-value)が設定されていません。");
-      this.resetUI();
-      return;
+      console.error("送信先URLまたはフォーム名が設定されていません。"); this.resetUI(); return;
     }
-    if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "音声データを送信中...";
+    if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "音声データを送信・分析中...";
+    this.stopButtonTarget.disabled = true;
 
     const formData = new FormData();
     formData.append(this.formFieldNameValue, blob, "recording.wav");
-
-    // exercise_id があれば、それもFormDataに追加する
     if (this.hasExerciseIdValue) {
-      // practice_attempt_log[practice_exercise_id] というキーで送信
       const exerciseIdKey = this.formFieldNameValue.replace(/\[recorded_audio\]$/, '[practice_exercise_id]');
       formData.append(exerciseIdKey, this.exerciseIdValue);
     }
-
-    // sendPhraseSnapshotValue が true の場合のみ、スナップショットを送信する
     if (this.sendPhraseSnapshotValue) {
       const phraseElement = document.getElementById("current-phrase");
       if (phraseElement) {
@@ -244,24 +244,33 @@ export default class extends Controller {
     }
 
     const csrfToken = document.querySelector("meta[name='csrf-token']")?.content;
-    if (!csrfToken) { /* ... エラー処理 ... */ this.resetUI(); return; }
+    if (!csrfToken) { this.resetUI(); return; }
 
     try {
       const response = await fetch(this.postUrlValue, {
-        method: "POST",
-        headers: { "X-CSRF-Token": csrfToken },
-        body: formData
+        method: "POST", headers: { "X-CSRF-Token": csrfToken, "Accept": "application/json" }, body: formData
       });
+      const data = await response.json();
 
-      if (response.ok && response.redirected) {
-        window.location.href = response.url;
+      if (response.ok) {
+        this.recorderTarget.classList.add("hidden");
+        this.resultTarget.innerHTML = data.result_html;
+        this.resultTarget.classList.remove("hidden");
+
+        if (data.next_action.button_type === 'next') {
+          this.nextButtonTarget.href = data.next_action.url;
+          this.nextButtonTarget.classList.remove('hidden');
+        } else if (data.next_action.button_type === 'finish') {
+          this.finishButtonTarget.href = data.next_action.url;
+          this.finishButtonTarget.classList.remove('hidden');
+        }
       } else {
         this.resetUI();
-        if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = `エラー： 送信に失敗しました (${response.status})。`;
+        if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = `エラー： ${data.errors?.join(', ') || '送信に失敗しました'}`;
       }
     } catch (error) {
       this.resetUI();
-      if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "エラー： 送信中に問題が発生しました。";
+      if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "エラー： 通信中に問題が発生しました。";
     }
   }
 

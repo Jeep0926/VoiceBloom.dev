@@ -1,0 +1,44 @@
+<%# このパーシャルは、ローカル変数 attempt_log を受け取ります %>
+
+<div class="text-center">
+
+  <%# --- 評価結果 --- %>
+  <div class="mb-6">
+    <h3 class="text-sm text-gray-500 mb-2">評価結果</h3>
+    <div class="relative w-32 h-32 mx-auto flex items-center justify-center">
+      <div class="absolute inset-0 border-8 border-purple-100 rounded-full"></div>
+      <%# ★注意：スコアはまだ分析機能がないため、ダミーの値を表示 %>
+      <% score = attempt_log.score || 92 %>
+      <%# スコアに応じて円グラフを動的に描画 (これは将来的な課題) %>
+      <%# ここでは簡易的にスコアが80点以上なら紫、それ以下なら青で表現 %>
+      <% score_color_class = score >= 80 ? "border-t-purple-600" : "border-t-blue-500" %>
+      <span class="text-4xl font-bold text-purple-700"><%= score %></span>
+    </div>
+  </div>
+
+  <%# --- フィードバック --- %>
+  <div class="mb-6">
+    <h3 class="text-sm text-gray-500 mb-2 text-left">フィードバック</h3>
+    <div class="p-4 bg-gray-50 rounded-lg text-left text-gray-700">
+      <%# ★注意：フィードバックもまだないので、ダミーテキストを表示 %>
+      <%= attempt_log.feedback_text.presence || '素晴らしい！かなりお手本に近い発音です。' %>
+    </div>
+  </div>
+
+  <%# --- あなたの音声（録音音声の再生） --- %>
+  <%# タスク3-16「自分の録音音声再生機能」はここで実装されます %>
+  <div>
+    <h3 class="text-sm text-gray-500 mb-2 text-left">あなたの音声</h3>
+    <% if attempt_log.recorded_audio.attached? %>
+      <%# デザイン見本の「再生する」ボタンはカスタム実装が必要なため、
+          MVPではまずブラウザ標準の再生プレイヤーを使います。見た目は後ほど調整可能です。 %>
+      <audio controls class="w-full rounded">
+        <source src="<%= rails_blob_url(attempt_log.recorded_audio) %>" type="<%= attempt_log.recorded_audio.content_type %>">
+        お使いのブラウザは音声再生に対応していません。
+      </audio>
+    <% else %>
+      <p class="text-gray-500">録音された音声はありません。</p>
+    <% end %>
+  </div>
+
+</div>

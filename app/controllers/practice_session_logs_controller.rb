@@ -41,8 +41,8 @@ class PracticeSessionLogsController < ApplicationController
       new_practice_session_log_practice_attempt_log_path(
         @practice_session_log,
         exercise_id: exercise.id
-      ),
-      notice: '練習セッションを開始します！' # rubocop:disable Rails/I18nLocaleTexts
+      )
+      # notice: '練習セッションを開始します！'
     )
   end
 

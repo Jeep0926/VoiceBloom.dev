@@ -4,11 +4,14 @@
 <% end %>
 
 <%# --- メインコンテンツ --- %>
+<%# Stimulusコントローラーのコンテナをここに統合 %>
 <div class="container mx-auto px-4 py-4 max-w-sm"
      data-controller="web-audio-recorder"
      data-web-audio-recorder-post-url-value="<%= practice_session_log_practice_attempt_logs_path(@practice_session_log) %>"
      data-web-audio-recorder-form-field-name-value="practice_attempt_log[recorded_audio]"
      data-web-audio-recorder-send-phrase-snapshot-value="false"
+     data-web-audio-recorder-attempt-number-value="<%= @practice_attempt_log.attempt_number %>"
+     data-web-audio-recorder-finish-url-value="<%= practice_session_log_path(@practice_session_log) %>"
      data-web-audio-recorder-exercise-id-value="<%= @practice_exercise.id %>">
 
   <%# --- プログレスバー --- %>
@@ -20,10 +23,10 @@
   <div class="bg-white rounded-2xl shadow p-6 mb-8 text-center">
     <h2 class="text-sm text-gray-500 mb-2">お題</h2>
     <p id="current-phrase" class="text-2xl font-bold text-gray-800 mb-4"><%= @practice_exercise.text_content %></p>
-
+    
     <% if @practice_exercise.sample_audio.attached? %>
-      <button data-action="click->web-audio-recorder#playSampleAudio" 
-              data-web-audio-recorder-target="sampleAudioButton" 
+      <button data-action="click->web-audio-recorder#playSampleAudio"
+              data-web-audio-recorder-target="sampleAudioButton"
               class="w-full px-4 py-2 border border-purple-500 text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition">
         <span class="inline-flex items-center justify-center">
           <svg class="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -37,5 +40,8 @@
   </div>
 
   <%# --- 録音機能セクション (共通パーシャルを呼び出す) --- %>
-  <%= render 'shared/recorder_ui' %>
+  <%= render 'shared/recorder_ui',
+             post_url: practice_session_log_practice_attempt_logs_path(@practice_session_log),
+             form_field_name: 'practice_attempt_log[recorded_audio]',
+             attempt_log: @practice_attempt_log %>
 </div>
