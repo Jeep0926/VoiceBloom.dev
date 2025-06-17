@@ -17,6 +17,10 @@ Rails.application.routes.draw do
     # この関係をURLでも表現するために入れ子にする。
     resources :practice_attempt_logs, only: %i[new create show]
   end
+
+  # ユーザー一人につき学習記録ページは一つなので、単数形リソースとして定義
+  resource :learning_log, only: [:show], controller: 'learning_logs'
+
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
   # 200 OK を返すだけのヘルスチェック用エンドポイント
   # get '/up', to: proc { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
