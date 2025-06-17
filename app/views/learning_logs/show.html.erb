@@ -1,0 +1,35 @@
+<%# ヘッダーに表示する動的なタイトルを設定 %>
+<% content_for :header_title, "学習記録" %>
+
+<%# 修正箇所：data-controllerを持つdivに、data-tabs-*-classを追加 %>
+<div class="container mx-auto px-4 py-4 max-w-lg" 
+     data-controller="tabs"
+     data-tabs-active-tab-class="border-purple-500 text-purple-600"
+     data-tabs-inactive-tab-class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+
+  <%# --- タブナビゲーション --- %>
+  <div class="border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+      <%# 各タブに data-action と data-tabs-target="tab" を設定 %>
+      <a href="#" data-action="click->tabs#change" data-tabs-target="tab">
+        声のコンディション
+      </a>
+      <a href="#" data-action="click->tabs#change" data-tabs-target="tab">
+        発声練習
+      </a>
+    </nav>
+  </div>
+
+  <%# --- タブパネル --- %>
+  <div class="py-6">
+    <%# 各パネルに data-tabs-target="panel" を設定 %>
+    <div data-tabs-target="panel" class="hidden">
+      <%# 後続のタスクで、ここに _voice_condition_tab.html.erb をrenderします %>
+      <p>（声のコンディション履歴表示エリア）</p>
+    </div>
+    <div data-tabs-target="panel" class="hidden">
+      <%# 後続のタスクで、ここに _practice_history_tab.html.erb をrenderします %>
+      <p>（発声練習履歴表示エリア）</p>
+    </div>
+  </div>
+</div>
