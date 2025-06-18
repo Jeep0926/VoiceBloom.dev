@@ -10,9 +10,11 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
   </head>
 
-  <body>
+  <%# bodyに背景色を追加 %>
+  <body class="bg-gray-50">
     <%= render "layouts/header" %>
 
+    <%# フラッシュメッセージ %>
     <div class="flash-messages container mx-auto px-5 mt-4">
       <% if notice %>
         <p class="notice bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
@@ -26,11 +28,15 @@
       <% end %>
     </div>
 
-    <main role="main" class="container mx-auto mt-8 mb-8 px-5 bg-gray-100">
+    <%# メインコンテンツ %>
+    <main role="main" class="container mx-auto mt-8 mb-8 px-5">
       <%= yield %>
     </main>
 
-    <%# フッターがあればここに %>
-    <%# <%= render "layouts/footer" %>
+    <%# 下部ナビゲーションのパーシャルを呼び出す %>
+    <%# @show_bottom_nav が true の場合のみ、下部ナビゲーションを描画 %>
+    <% if @show_bottom_nav %>
+      <%= render "layouts/bottom_navigation" %>
+    <% end %>
   </body>
 </html>
