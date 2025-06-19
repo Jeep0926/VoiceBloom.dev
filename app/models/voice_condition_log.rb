@@ -42,7 +42,7 @@ class VoiceConditionLog < ApplicationRecord
     [0, score.round].max
   end
 
-private
+  private
 
   # 性別に応じた理想ピッチと許容範囲を返す
   def ideal_pitch_range
