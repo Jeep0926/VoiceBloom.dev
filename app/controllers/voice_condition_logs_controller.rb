@@ -6,25 +6,8 @@ class VoiceConditionLogsController < ApplicationController
   layout 'base_view', only: %i[new show]
 
   def show
-    # (このアクションは後のタスクで、分析結果表示を実装)
-    @voice_condition_log = current_user.voice_condition_logs.find(params[:id])
-    # JSONリクエストに対応する respond_to を追加
-    respond_to do |format|
-      format.html # show.html.erb をレンダリング
-      format.json do
-        render json: {
-          # 必要に応じて、ポーリングや状態確認のためのJSONデータを返す
-          analyzed_at: @voice_condition_log.analyzed_at,
-          error_message: @voice_condition_log.analysis_error_message,
-          # Action Cableで更新するので、ここではHTMLは返さなくても良い
-          html_content: render_to_string(
-            partial: 'voice_condition_logs/analysis_result_content',
-            formats: [:html],
-            locals: { voice_condition_log: @voice_condition_log }
-          )
-        }
-      end
-    end
+    load_voice_condition_log
+    respond_with_log
   end
 
   def new
@@ -61,6 +44,32 @@ class VoiceConditionLogsController < ApplicationController
   # ナビゲーション非表示
   def hide_bottom_nav
     @show_bottom_nav = false
+  end
+
+  def load_voice_condition_log
+    @voice_condition_log = current_user.voice_condition_logs.find(params[:id])
+  end
+
+  # JSONリクエスト用のレスポンスをまとめる
+  def respond_with_log
+    respond_to do |format|
+      format.html
+      format.json do
+        render json: json_response_data
+      end
+    end
+  end
+
+  def json_response_data
+    {
+      analyzed_at: @voice_condition_log.analyzed_at,
+      error_message: @voice_condition_log.analysis_error_message,
+      html_content: render_to_string(
+        partial: 'voice_condition_logs/analysis_result_content',
+        formats: [:html],
+        locals: { voice_condition_log: @voice_condition_log }
+      )
+    }
   end
 
   def voice_condition_log_params

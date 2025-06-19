@@ -5,7 +5,8 @@ ja:
       default: "%Y/%m/%d %H:%M:%S"
       long: "%Y年%m月%d日(%a) %H時%M分"
       short: "%m/%d %H:%M"
-      short_date: "%-m/%-d" # "5/2" のような形式 (ハイフンはゼロ埋めなし)
+      short_date: "%-m/%-d" # "5/2" のような形式
+      short_time: "%H:%M"
 
   # 日付のフォーマット定義
   date:

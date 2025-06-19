@@ -18,5 +18,5 @@ class User < ApplicationRecord
   default_scope { kept }
 
   # enum を使って gender の値をシンボルで扱えるようにする
-  enum gender: { unset: 0, male: 1, female: 2 }
+  enum :gender, { unset: 0, man: 1, woman: 2 }
 end
