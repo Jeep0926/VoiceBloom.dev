@@ -24,8 +24,7 @@
   <div class="py-6">
     <%# 各パネルに data-tabs-target="panel" を設定 %>
     <div data-tabs-target="panel" class="hidden">
-      <%# 後続のタスクで、ここに _voice_condition_tab.html.erb をrenderします %>
-      <p>（声のコンディション履歴表示エリア）</p>
+      <%= render 'learning_logs/voice_condition_tab', voice_condition_logs: @voice_condition_logs %>
     </div>
     <div data-tabs-target="panel" class="hidden">
       <%# 後続のタスクで、ここに _practice_history_tab.html.erb をrenderします %>

@@ -39,6 +39,8 @@ module App
     config.time_zone = 'Tokyo'
     # config.eager_load_paths << Rails.root.join("extras")
 
+    config.i18n.default_locale = :ja
+
     # Don't generate system test files.
     config.generators.system_tests = nil
 

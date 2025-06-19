@@ -1,0 +1,5 @@
+<%# ローカル変数 classes を受け取り、SVGのサイズなどを動的に設定する %>
+<% classes ||= "w-32 h-32" # デフォルト値を設定 %>
+
+<%# ダミーのキャラ画像を表示 %>
+<%= inline_svg_tag 'dummy_character.svg', class: "#{classes} mx-auto rounded-full object-cover" %>

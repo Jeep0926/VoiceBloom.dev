@@ -248,21 +248,30 @@ export default class extends Controller {
 
     try {
       const response = await fetch(this.postUrlValue, {
-        method: "POST", headers: { "X-CSRF-Token": csrfToken, "Accept": "application/json" }, body: formData
+        method: "POST",
+        headers: { "X-CSRF-Token": csrfToken, "Accept": "application/json" }, 
+        body: formData
       });
       const data = await response.json();
 
       if (response.ok) {
-        this.recorderTarget.classList.add("hidden");
-        this.resultTarget.innerHTML = data.result_html;
-        this.resultTarget.classList.remove("hidden");
+        // レスポンスの形式によって処理を分岐
+        if (data.redirect_url) {
+          // 声のコンディション確認機能の場合：リダイレクト先URLが返ってくる
+          window.location.href = data.redirect_url;
+        } else if (data.result_html) {
+          // 発声練習機能の場合：結果表示用のHTMLが返ってくる
+          this.recorderTarget.classList.add("hidden");
+          this.resultTarget.innerHTML = data.result_html;
+          this.resultTarget.classList.remove("hidden");
 
-        if (data.next_action.button_type === 'next') {
-          this.nextButtonTarget.href = data.next_action.url;
-          this.nextButtonTarget.classList.remove('hidden');
-        } else if (data.next_action.button_type === 'finish') {
-          this.finishButtonTarget.href = data.next_action.url;
-          this.finishButtonTarget.classList.remove('hidden');
+          if (data.next_action.button_type === 'next') {
+            this.nextButtonTarget.href = data.next_action.url;
+            this.nextButtonTarget.classList.remove('hidden');
+          } else if (data.next_action.button_type === 'finish') {
+            this.finishButtonTarget.href = data.next_action.url;
+            this.finishButtonTarget.classList.remove('hidden');
+          }
         }
       } else {
         this.resetUI();
@@ -273,14 +282,6 @@ export default class extends Controller {
       if (this.hasRecordIndicatorTextTarget) this.recordIndicatorTextTarget.textContent = "エラー： 通信中に問題が発生しました。";
     }
   }
-
-  // ★ 7. アイコンのSVGテンプレート
-  // micIconTemplate() {
-  //   return `<svg class="h-16 w-16 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-  //     <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5a6 6 0 00-12 0v1.5a6 6 0 006 6z" />
-  //     <path stroke-linecap="round" stroke-linejoin="round" d="M12 12.75a3 3 0 003-3v-1.5a3 3 0 00-6 0v1.5a3 3 0 003 3z" />
-  //   </svg>`;
-  // }
 
   recordingIconTemplate() {
     return `<svg class="h-16 w-16 text-purple-600 animate-pulse" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
