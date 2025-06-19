@@ -16,4 +16,7 @@ class User < ApplicationRecord
 
   # 論理削除したユーザーを検索対象に含めないため
   default_scope { kept }
+
+  # enum を使って gender の値をシンボルで扱えるようにする
+  enum :gender, { unset: 0, man: 1, woman: 2 }
 end

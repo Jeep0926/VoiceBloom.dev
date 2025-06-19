@@ -1,0 +1,67 @@
+<% latest_log = voice_condition_logs.first %>
+
+<div class="space-y-6">
+  <%# --- 今日のあなたの声 --- %>
+  <% if latest_log %>
+    <div class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-2">今日のあなたの声</h3>
+      <p class="text-sm text-gray-500 mb-4"><%= l latest_log.created_at, format: :long %></p>
+
+      <div class="text-center my-4">
+        <%# 共通パーシャルを使ってキャラクター画像を表示 %>
+        <%= render 'shared/character_image', classes: "w-32 h-32" %>
+        <p class="mt-2 font-semibold text-purple-800">今日の声は元気いっぱい！</p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-4 text-center">
+        <div>
+          <p class="text-xs text-gray-500">声の高さ</p>
+          <p class="font-semibold"><%= number_with_precision(latest_log.pitch_value, precision: 1, default: '---') %> Hz</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">話す速さ</p>
+          <p class="font-semibold"><%= number_with_precision(latest_log.tempo_value, precision: 1, default: '---') %> BPM</p>
+        </div>
+        <div>
+          <p class="text-xs text-gray-500">声の音量</p>
+          <p class="font-semibold"><%= number_with_precision(latest_log.volume_value, precision: 1, default: '---') %> dB</p>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-xl shadow p-6 text-center text-gray-500">
+      <p>まだ声のコンディション記録がありません。</p>
+    </div>
+  <% end %>
+
+  <%# --- 履歴 --- %>
+  <div class="bg-white rounded-xl shadow p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">履歴</h3>
+    <%# 取得した直近のログを最大5件表示する %>
+    <div class="flex justify-around items-end">
+      <% @sorted_voice_condition_logs.each do |log| %>
+        <div class="text-center">
+          <%= render 'shared/character_image', classes: "w-12 h-12" %>
+          <%# l メソッドで日付を "5/2" のような形式で表示 %>
+          <p class="text-xs mt-1 text-gray-500"><%= l log.created_at, format: :short_date %></p>
+          <%# 日付の下に時刻も表示 %>
+          <p class="text-xs text-gray-400"><%= l log.created_at, format: :short_time %></p>
+        </div>
+      <% end %>
+      <%# もし記録が5件未満の場合、空のプレースホルダーを表示して見た目を整える %>
+      <% (5 - @voice_condition_logs.size).times do %>
+        <div class="w-12 h-12 mx-auto"></div>
+      <% end if @voice_condition_logs.size < 5 %>
+    </div>
+  </div>
+
+  <%# --- 直近の推移 --- %>
+  <div class="bg-white rounded-xl shadow p-6">
+    <h3 class="text-lg font-semibold text-gray-700 mb-4">直近の推移</h3>
+    <%# Stimulusのchartコントローラーをここにアタッチ %>
+    <div class="h-64" data-controller="chart"
+          data-chart-data-value="<%= @chart_data.to_json %>">
+      <canvas data-chart-target="canvas"></canvas>
+    </div>
+  </div>
+</div>

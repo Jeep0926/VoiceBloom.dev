@@ -6,8 +6,8 @@ class VoiceConditionLogsController < ApplicationController
   layout 'base_view', only: %i[new show]
 
   def show
-    # (このアクションは後のタスクで、分析結果表示を実装)
-    @voice_condition_log = current_user.voice_condition_logs.find(params[:id])
+    load_voice_condition_log
+    respond_with_log
   end
 
   def new
@@ -30,11 +30,12 @@ class VoiceConditionLogsController < ApplicationController
     if @voice_condition_log.save
       # ここでFastAPIへの連携処理を呼び出す（Active Job を使って非同期でFastAPI連携を実行）
       AnalyzeAudioJob.perform_later(@voice_condition_log.id)
-      redirect_to @voice_condition_log, notice: '声のコンディション記録を受け付けました。分析結果をお待ちください。' # rubocop:disable Rails/I18nLocaleTexts
+      # 成功した場合、リダイレクト先のURLをJSONで返す
+      render json: { status: 'success', redirect_url: voice_condition_log_path(@voice_condition_log) }
     else
-      # バリデーションエラーなどで保存失敗した場合
-      flash.now[:alert] = '記録に失敗しました。' # rubocop:disable Rails/I18nLocaleTexts
-      render :new, status: :unprocessable_entity
+      # 失敗した場合、エラーメッセージをJSONで返す
+      render json: { status: 'error', errors: @voice_condition_log.errors.full_messages },
+             status: :unprocessable_entity
     end
   end
 
@@ -43,6 +44,32 @@ class VoiceConditionLogsController < ApplicationController
   # ナビゲーション非表示
   def hide_bottom_nav
     @show_bottom_nav = false
+  end
+
+  def load_voice_condition_log
+    @voice_condition_log = current_user.voice_condition_logs.find(params[:id])
+  end
+
+  # JSONリクエスト用のレスポンスをまとめる
+  def respond_with_log
+    respond_to do |format|
+      format.html
+      format.json do
+        render json: json_response_data
+      end
+    end
+  end
+
+  def json_response_data
+    {
+      analyzed_at: @voice_condition_log.analyzed_at,
+      error_message: @voice_condition_log.analysis_error_message,
+      html_content: render_to_string(
+        partial: 'voice_condition_logs/analysis_result_content',
+        formats: [:html],
+        locals: { voice_condition_log: @voice_condition_log }
+      )
+    }
   end
 
   def voice_condition_log_params
