@@ -24,6 +24,15 @@ class PracticeSessionLog < ApplicationRecord
 
   validates :is_shared_on_sns, inclusion: { in: [true, false] }
 
+  # このセッションの代表タイトルを返すメソッド
+  # 最初の試行ログに紐づくエクササイズのタイトルを返す
+  def representative_title
+    # practice_attempt_logs.first は created_at の昇順で最初のものを取るため、
+    # order を指定して常に一貫した結果を返すようにする
+    first_attempt = practice_attempt_logs.order(:created_at).first
+    first_attempt&.practice_exercise&.title || '発声練習' # もし見つからなければデフォルト値を返す
+  end
+
   private
 
   def session_ended_at_after_session_started_at

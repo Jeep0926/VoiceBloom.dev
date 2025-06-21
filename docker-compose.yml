@@ -7,6 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+      TZ: 'Asia/Tokyo'
 
   web:
     build:
@@ -28,6 +29,7 @@ services:
       DATABASE_URL: postgresql://postgres:password@db:5432/voice_bloom_development
       FASTAPI_URL: 'http://api:8000'
       RAILS_ENV: development
+      TZ: 'Asia/Tokyo'
 
   api:
     build:
