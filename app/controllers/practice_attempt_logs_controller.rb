@@ -115,6 +115,10 @@ class PracticeAttemptLogsController < ApplicationController
   # セッションを終了し、終了後のハッシュを返す
   def finish_action(session)
     session.update(session_ended_at: Time.current)
+
+    # Userモデルのカウンター更新メソッドを呼び出す
+    current_user.update_practice_stats!(session)
+
     # TODO: 総合スコアを計算して保存するロジック
     { button_type: 'finish', url: practice_session_log_path(session) }
   end

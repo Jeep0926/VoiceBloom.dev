@@ -27,8 +27,7 @@
       <%= render 'learning_logs/voice_condition_tab', voice_condition_logs: @voice_condition_logs %>
     </div>
     <div data-tabs-target="panel" class="hidden">
-      <%# 後続のタスクで、ここに _practice_history_tab.html.erb をrenderします %>
-      <p>（発声練習履歴表示エリア）</p>
+      <%= render 'learning_logs/practice_history_tab', practice_session_logs: @practice_session_logs %>
     </div>
   </div>
 </div>

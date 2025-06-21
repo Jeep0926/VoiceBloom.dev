@@ -6,7 +6,7 @@ class LearningLogsController < ApplicationController
 
   def show
     prepare_voice_data
-    prepare_practice_session_logs
+    prepare_practice_data
   end
 
   private
@@ -36,11 +36,37 @@ class LearningLogsController < ApplicationController
     end
   end
 
-  # 発声練習セッション履歴を取得
-  def prepare_practice_session_logs
-    @practice_session_logs = current_user.practice_session_logs
-                                         .includes(practice_attempt_logs: :practice_exercise)
-                                         .order(created_at: :desc) # こちらは新しい順のままでOK！
-                                         .limit(5)
+  # 発声練習関連のデータを準備する
+  def prepare_practice_data
+    all_sessions = load_all_practice_sessions
+    prepare_practice_chart_data(all_sessions)
+    prepare_practice_history_data(all_sessions)
+  end
+
+  # N+1問題を考慮して全ての練習セッションを読み込む
+  def load_all_practice_sessions
+    current_user.practice_session_logs
+                .includes(practice_attempt_logs: [:practice_exercise,
+                                                  { recorded_audio_attachment: :blob }])
+                .order(created_at: :desc)
+  end
+
+  # 練習スコア推移グラフのデータを準備する
+  def prepare_practice_chart_data(sessions)
+    # 完了済みセッションの直近5件を古い順に取得
+    sessions_for_chart = sessions.where.not(session_ended_at: nil).first(5).reverse
+    # Chart.jsが扱いやすい形式の配列を構築する
+    @practice_chart_data = sessions_for_chart.map do |session|
+      {
+        date: l(session.created_at, format: :short),
+        score: session.total_score || 460 # ダミーのスコア
+      }
+    end
+  end
+
+  # 練習履歴一覧と最新の履歴詳細のデータを準備する
+  def prepare_practice_history_data(sessions)
+    @practice_session_logs = sessions.first(5)
+    @latest_practice_session = sessions.first
   end
 end

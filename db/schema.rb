@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_19_105557) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_21_024356) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -96,6 +96,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_19_105557) do
     t.integer "total_practice_days", default: 0
     t.datetime "discarded_at"
     t.integer "gender", default: 0, null: false
+    t.integer "total_practice_sessions_count", default: 0, null: false
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
