@@ -1,34 +1,107 @@
-<h2>Sign up</h2>
+<div class="min-h-screen bg-gray-50 flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
+  <%# 全体を囲むカードコンポーネント %>
+  <div class="w-full max-w-md">
 
-<%= form_for(resource, as: resource_name, url: registration_path(resource_name)) do |f| %>
-  <%= render "users/shared/error_messages", resource: resource %>
+    <%# --- ヘッダー部分 --- %>
+    <div class="text-center mb-8">
+      <%# ロゴの代わりにアイコンを配置 %>
+      <div class="mx-auto h-20 w-20 bg-purple-100 rounded-full flex items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      </div>
+      <h1 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        新規登録
+      </h1>
+    </div>
 
-  <div class="field">
-    <%= f.label :name %><br />
-    <%= f.text_field :name, autofocus: true %>
+    <%# --- フォーム部分 --- %>
+    <div class="bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
+      <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { class: "space-y-6" }) do |f| %>
+        <%= render "users/shared/error_messages", resource: resource %>
+
+        <%# --- ユーザー名 --- %>
+        <div>
+          <%= f.label :name, "ユーザー名", class: "sr-only" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <%= f.text_field :name, autofocus: true, required: true, class: "block w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm", placeholder: "ユーザー名" %>
+          </div>
+        </div>
+
+        <%# --- 性別選択 --- %>
+        <div class="pt-2">
+          <label class="text-sm font-medium text-gray-700">性別</label>
+          <div class="flex items-center space-x-8 mt-2">
+            <%# 「男性」「女性」「その他」の3つを表示する %>
+            <% User.genders.slice(:male, :female, :other).each do |key, _value| %>
+              <div class="flex items-center">
+                <%= f.radio_button :gender, key, class: "h-4 w-4 border-gray-300 text-purple-600 focus:ring-purple-500 accent-purple-600" %>
+                <%= f.label "gender_#{key}", class: "ml-2 block text-sm font-medium text-gray-700" do %>
+                  <%= t("activerecord.enums.user.gender.#{key}") %>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+
+        <%# --- メールアドレス --- %>
+        <div>
+          <%= f.label :email, "メールアドレス", class: "sr-only" %>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+            <%= f.email_field :email, autocomplete: "email", required: true, class: "block w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm", placeholder: "メールアドレス" %>
+          </div>
+        </div>
+        
+        <%# --- パスワード --- %>
+        <div>
+          <%= f.label :password, "パスワード", class: "sr-only" %>
+          <div class="relative">
+             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+             </div>
+            <%= f.password_field :password, autocomplete: "new-password", required: true, class: "block w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm", placeholder: "パスワード (8文字以上)" %>
+          </div>
+        </div>
+
+        <%# --- パスワード（確認用）--- %>
+        <div>
+          <%= f.label :password_confirmation, "パスワード（確認用）", class: "sr-only" %>
+          <div class="relative">
+             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+                </svg>
+             </div>
+            <%= f.password_field :password_confirmation, autocomplete: "new-password", required: true, class: "block w-full pl-10 pr-3 py-2 border-b-2 border-gray-300 placeholder-gray-500 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm", placeholder: "パスワード（確認用）" %>
+          </div>
+        </div>
+
+        <%# --- 登録ボタン --- %>
+        <div>
+          <%= f.submit "アカウントを登録する", class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-sm text-sm font-bold text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out cursor-pointer" %>
+        </div>
+      <% end %>
+    </div>
+
+    <%# --- ログインページへのリンク --- %>
+    <div class="mt-6 text-center text-sm">
+      <p class="text-gray-600">
+        すでにアカウントをお持ちですか？
+        <%= link_to "ログインする", new_user_session_path, class: "font-medium text-purple-600 hover:text-purple-500" %>
+      </p>
+    </div>
   </div>
-
-  <div class="field">
-    <%= f.label :email %><br />
-    <%= f.email_field :email, autofocus: true, autocomplete: "email" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password %>
-    <% if @minimum_password_length %>
-    <em>(<%= @minimum_password_length %> characters minimum)</em>
-    <% end %><br />
-    <%= f.password_field :password, autocomplete: "new-password" %>
-  </div>
-
-  <div class="field">
-    <%= f.label :password_confirmation %><br />
-    <%= f.password_field :password_confirmation, autocomplete: "new-password" %>
-  </div>
-
-  <div class="actions">
-    <%= f.submit "Sign up" %>
-  </div>
-<% end %>
-
-<%= render "users/shared/links" %>
+</div>
