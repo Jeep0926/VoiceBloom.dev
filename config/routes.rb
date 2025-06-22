@@ -1,12 +1,23 @@
 # frozen_string_literal: true
 
 Rails.application.routes.draw do
+  get 'statics/top'
   mount ActionCable.server => '/cable'
   devise_for :users, controllers: {
     registrations: 'users/registrations', # registrationsコントローラーのパスを指定
     sessions: 'users/sessions'
   }
-  root 'home#index'
+
+  # ログイン後のユーザー向けのルートパス
+  # ログインしているユーザーが / にアクセスすると Home#index が表示される
+  authenticated :user do
+    root 'home#index', as: :authenticated_root
+  end
+
+  # 未ログインユーザー向けのルートパス (デフォルトのルート)
+  # ログインしていないユーザーが / にアクセスすると Statics#top が表示される
+  root 'statics#top'
+
   get 'up' => 'rails/health#show', as: :rails_health_check
 
   resources :voice_condition_logs, only: %i[new create show]
