@@ -46,12 +46,12 @@ class VoiceConditionLog < ApplicationRecord
 
   # 性別に応じた理想ピッチと許容範囲を返す
   def ideal_pitch_range
-    if user.man?
+    if user.male?
       [110.0, 25.0] # 中心: 110Hz, 許容範囲の半径: 25Hz
-    elsif user.woman?
+    elsif user.female?
       [220.0, 35.0] # 中心: 220Hz, 許容範囲の半径: 35Hz
     else
-      [165.0, 30.0] # デフォルト（未選択時）: 中心165Hz, 許容範囲30Hz
+      [165.0, 30.0] # デフォルト（その他）: 中心165Hz, 許容範囲30Hz
     end
   end
 end

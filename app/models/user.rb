@@ -18,7 +18,11 @@ class User < ApplicationRecord
   default_scope { kept }
 
   # enum を使って gender の値をシンボルで扱えるようにする
-  enum :gender, { unset: 0, man: 1, woman: 2 }
+  enum :gender, { unset: 0, male: 1, female: 2, other: 3 }
+
+  # gender に保存される値が、enum で定義したキー ("unset", "male", "female", "other") のいずれかであることを保証。
+  # 意図しない値がデータベースに保存されるのを防ぐ。
+  validates :gender, inclusion: { in: genders.keys }
 
   # 練習セッション完了時にカウンターを更新するメソッド
   def update_practice_stats!(completed_session)
