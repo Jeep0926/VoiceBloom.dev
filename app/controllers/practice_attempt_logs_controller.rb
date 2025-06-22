@@ -3,7 +3,6 @@
 class PracticeAttemptLogsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_practice_session_log, only: %i[new create]
-  before_action :hide_bottom_nav, only: %i[new show] # ナビゲーション
   layout 'base_view', only: %i[new show]
 
   def show
@@ -41,11 +40,6 @@ class PracticeAttemptLogsController < ApplicationController
   end
 
   private
-
-  # ナビゲーション非表示
-  def hide_bottom_nav
-    @show_bottom_nav = false
-  end
 
   def set_practice_session_log
     # ネストされたURL (/practice_session_logs/:practice_session_log_id/...) からセッションIDを取得

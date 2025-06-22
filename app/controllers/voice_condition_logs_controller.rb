@@ -2,7 +2,6 @@
 
 class VoiceConditionLogsController < ApplicationController
   before_action :authenticate_user! # ログイン必須にする
-  before_action :hide_bottom_nav, only: %i[new show] # ナビゲーション
   layout 'base_view', only: %i[new show]
 
   def show
@@ -40,11 +39,6 @@ class VoiceConditionLogsController < ApplicationController
   end
 
   private
-
-  # ナビゲーション非表示
-  def hide_bottom_nav
-    @show_bottom_nav = false
-  end
 
   def load_voice_condition_log
     @voice_condition_log = current_user.voice_condition_logs.find(params[:id])
