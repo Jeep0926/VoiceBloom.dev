@@ -2,7 +2,7 @@
 
 class VoiceConditionLogsController < ApplicationController
   before_action :authenticate_user! # ログイン必須にする
-  layout 'base_view', only: %i[new show]
+  layout 'task_view', only: %i[new show]
 
   def show
     load_voice_condition_log

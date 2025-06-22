@@ -3,7 +3,7 @@
 class PracticeAttemptLogsController < ApplicationController
   before_action :authenticate_user!
   before_action :set_practice_session_log, only: %i[new create]
-  layout 'base_view', only: %i[new show]
+  layout 'task_view', only: %i[new show]
 
   def show
     # 個別の試行結果を表示するページ

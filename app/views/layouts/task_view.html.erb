@@ -36,11 +36,5 @@
     <main>
       <%= yield %>
     </main>
-
-    <%# 下部ナビゲーションのパーシャルを呼び出す %>
-    <%# @show_bottom_nav が true の場合のみ、下部ナビゲーションを描画 %>
-    <% if @show_bottom_nav %>
-      <%= render "layouts/bottom_navigation" %>
-    <% end %>
   </body>
 </html>

@@ -2,7 +2,7 @@
 
 class PracticeSessionLogsController < ApplicationController
   before_action :authenticate_user! # 全てのアクションでログインを必須にする
-  layout 'base_view', only: [:show]
+  layout 'task_view', only: [:show]
 
   def show
     # このセッションの結果をまとめて表示するページ (後のタスクでビューを実装)
