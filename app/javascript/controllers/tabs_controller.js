@@ -6,8 +6,19 @@ export default class extends Controller {
   static classes = [ "activeTab", "inactiveTab" ]
 
   connect() {
-    // 初期状態で最初のタブを表示するだけで良くなる
-    this.showTab(0);
+    // URLから 'tab' パラメータを取得
+    const params = new URLSearchParams(window.location.search);
+    const tabNameToOpen = params.get('tab');
+
+    let initialIndex = 0; // デフォルトは最初のタブ (0番目)
+
+    // 'tab' パラメータに応じて初期表示するタブのインデックスを決定
+    if (tabNameToOpen === 'practice') {
+      initialIndex = 1; // 2番目のタブ (発声練習)
+    }
+
+    // 決定したインデックスのタブを表示
+    this.showTab(initialIndex);
   }
 
   // タブがクリックされたときに呼ばれるアクション
