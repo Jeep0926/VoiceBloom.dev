@@ -48,16 +48,16 @@ class User < ApplicationRecord
 
   # 指定された日に練習日数がすでにカウント済みかを確認する
   def practice_day_already_counted?(completed_session, date_of_completion)
-    # RuboCop (Rails/WhereExists) の指摘に従い、exists? の引数に条件を渡す
-    date_condition = [
-      "DATE(session_ended_at AT TIME ZONE 'UTC' AT TIME ZONE ?) = ?",
-      Time.zone.name,
-      date_of_completion
-    ]
+    # `AT TIME ZONE` を使った複雑な変換をやめ、日付の範囲で比較する
+    # to_date で取得した日付はそのタイムゾーンの0時なので、
+    # beginning_of_day と end_of_day でその日の開始から終了までの範囲を作成する
+    start_of_day = date_of_completion.beginning_of_day
+    end_of_day = date_of_completion.end_of_day
 
     practice_session_logs
       .where.not(id: completed_session.id) # 今回のセッションは除く
       .where.not(session_ended_at: nil)    # 未完了のセッションは除く
-      .exists?(date_condition)
+      .where(session_ended_at: start_of_day..end_of_day) # その日の範囲内に完了記録があるか
+      .exists?
   end
 end
