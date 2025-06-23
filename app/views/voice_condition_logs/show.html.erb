@@ -1,4 +1,4 @@
-<% content_for :header_title, "学習記録（声のコンディション）" %>
+<% content_for :header_title, "分析結果" %>
 
 <div class="container mx-auto px-4 py-8 max-w-3xl">
   <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">声のコンディション詳細</h1>
@@ -39,9 +39,12 @@
       </div>
     </div>
 
-    <div class="mt-8 pt-6 border-t border-gray-200 text-center">
-      <%#= link_to '一覧に戻る', voice_condition_logs_path, class: "inline-block px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
-      <%= link_to '記録ページに戻る', new_voice_condition_log_path, class: "inline-block px-6 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
+    <div class="mt-8 pt-6 border-t border-gray-200 space-y-3">
+      <%# 「ホームに戻る」ボタン %>
+      <%= link_to 'ホームに戻る', root_path, class: "block w-full text-center px-6 py-3 text-base font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 transition" %>
+      
+      <%# 「学習記録を確認」ボタン %>
+      <%= link_to '学習記録を確認', learning_log_path, class: "block w-full text-center px-6 py-3 text-base font-semibold text-purple-700 bg-white border border-purple-600 rounded-lg shadow-md hover:bg-purple-50 transition" %>
     </div>
 
   </div>

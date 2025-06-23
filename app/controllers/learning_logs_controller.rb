@@ -24,10 +24,11 @@ class LearningLogsController < ApplicationController
   end
 
   def build_chart_data
-    @chart_data = @voice_condition_logs.map do |log|
+    @chart_data = @sorted_voice_condition_logs.map do |log|
       {
         # l() ヘルパーで "6/19" のような形式の日付ラベルを作成
-        date: l(log.created_at, format: :short_date),
+        date: l(log.created_at, format: :short),
+
         # 各分析値を格納
         pitch: log.pitch_score,
         tempo: log.tempo_score,
