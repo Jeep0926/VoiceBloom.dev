@@ -13,12 +13,8 @@
     <%# --- このレイアウト専用のヘッダー --- %>
     <header class="bg-white shadow-sm sticky top-0 z-10">
       <div class="container mx-auto px-4 h-16 flex items-center justify-between max-w-lg">
-        <%# 戻るボタン (JavaScriptで前のページに戻る) %>
-        <a href="javascript:history.back()" class="text-gray-600 p-2">
-          <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </a>
+        <%# 戻るボタン (「app/helpers/application_helper.rb」で「ホーム画面」へ戻る) %>
+        <%= home_back_link %>
         
         <%# 各ページで設定される動的なタイトル %>
         <h1 class="text-lg font-bold text-gray-800">
