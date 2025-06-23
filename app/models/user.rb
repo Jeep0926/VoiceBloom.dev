@@ -56,8 +56,8 @@ class User < ApplicationRecord
 
     practice_session_logs
       .where.not(id: completed_session.id) # 今回のセッションは除く
-      .where.not(session_ended_at: nil)    # 未完了のセッションは除く
-      .where(session_ended_at: start_of_day..end_of_day) # その日の範囲内に完了記録があるか
-      .exists?
+      # .where.not(session_ended_at: nil) は不要なため削除
+      # 理由: `start_of_day..end_of_day` の範囲チェックで nil は自動的に除外されるため
+      .exists?(session_ended_at: start_of_day..end_of_day) # その日の範囲内に完了記録があるか
   end
 end
