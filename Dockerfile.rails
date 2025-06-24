@@ -67,7 +67,7 @@ ENV BUNDLE_WITHOUT="development:test" \
 RUN bundle install --jobs $(nproc) --retry 3
 
 # 5. アセットをビルドするステージ
-FROM build_deps AS assets_builder_production
+FROM build_deps AS assets_builder
 WORKDIR /app
 COPY . .
 COPY --from=bundle_install_production /app/vendor/bundle /app/vendor/bundle
