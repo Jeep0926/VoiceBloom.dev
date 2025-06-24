@@ -75,7 +75,7 @@ ENV RAILS_ENV="production"
 ENV SECRET_KEY_BASE_DUMMY=1
 
 # Renderの環境変数 (secrets) をビルド時に利用する
-RUN --mount=type=secret,id=rails_master_key,dst=/app/config/master.key \
+RUN --mount=type=secret,id=RAILS_MASTER_KEY,dst=/app/config/master.key \
     SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
 
