@@ -3,25 +3,29 @@
 # ------------------------------------------------------------------------------------
 ARG RUBY_VERSION=3.3.0
 ARG NODE_VERSION=20
-ARG BUNDLER_VERSION=2.5.3 # Bundlerのバージョンを固定して安定化
+ARG BUNDLER_VERSION=2.5.3
 
 # ------------------------------------------------------------------------------------
 # ステージ 1: base - 全てのステージの基礎となるRuby環境
 # ------------------------------------------------------------------------------------
 FROM ruby:${RUBY_VERSION}-slim AS base
-
-# 基本的な環境変数を設定
 ENV LANG C.UTF-8
 ENV BUNDLE_PATH="vendor/bundle"
-ENV BUNDLE_WITHOUT="development:test"
 
-# OSパッケージを更新し、基本的なライブラリをインストール
+# OSパッケージを更新し、ビルドと実行に共通で必要なライブラリをインストール
 RUN apt-get update -qq && apt-get install -y --no-install-recommends build-essential git libpq-dev
 
 # ------------------------------------------------------------------------------------
-# ステージ 2: gems - 本番用のgemをインストールする専用ステージ
+# ステージ 2: node_builder - Node.jsとYarnを準備する専用ステージ
 # ------------------------------------------------------------------------------------
-FROM base AS gems
+FROM node:${NODE_VERSION}-slim AS node_builder
+# このステージは、nodeとyarnの実行ファイルをコピーするためだけに使用します
+
+
+# ------------------------------------------------------------------------------------
+# ステージ 3: gem_builder - 本番用のgemをインストールする専用ステージ
+# ------------------------------------------------------------------------------------
+FROM base AS gem_builder
 WORKDIR /app
 
 # Bundlerを特定のバージョンでインストール
@@ -29,74 +33,77 @@ RUN gem install bundler -v ${BUNDLER_VERSION}
 
 # Gemfileをコピーして、本番用のgemのみをインストール
 COPY Gemfile Gemfile.lock ./
+ENV BUNDLE_WITHOUT="development:test"
 RUN bundle install --jobs $(nproc) --retry 3
 
+
 # ------------------------------------------------------------------------------------
-# ステージ 3: assets_builder - 本番用アセットをビルドする専用ステージ
+# ステージ 4: assets_builder - 本番用アセットをビルドする専用ステージ
 # ------------------------------------------------------------------------------------
 FROM base AS assets_builder
 WORKDIR /app
 
-# 1. Node.js環境をセットアップ
-#    Node.js公式イメージを一時的に利用して、Node.jsとYarnをコピー
-FROM node:${NODE_VERSION}-slim AS node_builder
+# node_builderステージから、nodeとyarnの実行ファイルのみをコピー
 COPY --from=node_builder /usr/local/bin/node /usr/local/bin/
 COPY --from=node_builder /opt/yarn-v* /opt/yarn
 RUN ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn && \
     ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg
 
-# 2. 必要なファイルをコピー
-COPY . .
+# gem_builderステージから、インストール済みの本番用gemをコピー
+COPY --from=gem_builder /app/vendor/bundle /app/vendor/bundle
 
-# 3. gemとnpmパッケージをインストール
-COPY --from=gems /app/vendor/bundle /app/vendor/bundle
+# アプリケーションのコードと設定ファイルをコピー
+COPY package.json yarn.lock ./
+COPY app/javascript app/javascript
+COPY app/assets app/assets
+COPY config config
+COPY lib lib
+COPY vendor vendor
+COPY bin bin
+
+# JavaScriptの依存関係をインストール
 RUN yarn install --frozen-lockfile
 
-# 4. アセットをプリコンパイル
-#    本番用の環境変数を設定
+# アセットをプリコンパイル
 ENV RAILS_ENV="production"
-#    ダミーのキーを設定してビルドを通過させる
 ENV SECRET_KEY_BASE_DUMMY=1
 RUN bundle exec rails assets:precompile
 
+
 # ------------------------------------------------------------------------------------
-# ステージ 4: development - 開発環境用ステージ
+# ステージ 5: development - 開発環境用ステージ (変更なし)
 # ------------------------------------------------------------------------------------
 FROM base AS development
 WORKDIR /app
+# 開発に必要なOSライブラリを追加 (curlなど)
+RUN apt-get update -qq && apt-get install -y --no-install-recommends curl nodejs npm && npm install -g yarn
 
-# 開発に必要なOSライブラリを追加
-RUN apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm
-RUN npm install -g yarn
-
-# Gemfileをコピーして、全てのgemをインストール
 COPY Gemfile Gemfile.lock ./
 ENV BUNDLE_WITHOUT=""
 RUN bundle install --jobs $(nproc) --retry 3
 
-# JavaScriptの依存関係をインストール
 COPY package.json yarn.lock ./
 RUN yarn install
 
 # アプリケーションコード全体をコピー
 COPY . .
 
+
 # ------------------------------------------------------------------------------------
-# ステージ 5: final - 最終的な本番実行イメージ
+# ステージ 6: final - 最終的な本番実行イメージ
 # ------------------------------------------------------------------------------------
 FROM base AS final
 WORKDIR /app
 
-# 実行に必要な最小限のOSライブラリをインストール
+# 実行に必要な最小限のOSライブラリのみをインストール
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
        libpq5 \
-       # もし画像処理などで他のライブラリが必要ならここに追加 (例: libvips)
     && rm -rf /var/lib/apt/lists/*
 
-# gemsステージとassets_builderステージから必要なファイルのみをコピー
-COPY --from=gems /app/vendor/bundle /app/vendor/bundle
-COPY --from=assets_builder /app/public/assets /app/public/assets
+# gem_builderステージとassets_builderステージから必要なファイルのみをコピー
+COPY --from=gem_builder /app/vendor/bundle /app/vendor/bundle
+COPY --from=assets_builder /app/public /app/public
 COPY . .
 
 # 実行に必要な環境変数を設定
