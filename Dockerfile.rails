@@ -62,15 +62,11 @@ COPY --from=gem_builder /app/vendor/bundle /app/vendor/bundle
 
 # アプリケーションのコードと設定ファイルをコピー
 COPY package.json yarn.lock ./
-COPY app/javascript app/javascript
-COPY app/assets app/assets
-COPY config config
-COPY lib lib
-# COPY vendor vendor
-COPY bin bin
 
 # JavaScriptの依存関係をインストール
 RUN yarn install --frozen-lockfile
+
+COPY . .
 
 # アセットをプリコンパイル
 ENV RAILS_ENV="production"
