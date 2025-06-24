@@ -9,8 +9,12 @@ ARG BUNDLER_VERSION=2.5.3
 # ステージ 1: base - 全てのステージの基礎となるRuby環境
 # ------------------------------------------------------------------------------------
 FROM ruby:${RUBY_VERSION}-slim AS base
+
+ARG BUNDLER_VERSION
+
 ENV LANG C.UTF-8
 ENV BUNDLE_PATH="vendor/bundle"
+ENV BUNDLE_WITHOUT="development:test"
 
 # OSパッケージを更新し、ビルドと実行に共通で必要なライブラリをインストール
 RUN apt-get update -qq && apt-get install -y --no-install-recommends build-essential git libpq-dev
@@ -28,6 +32,8 @@ FROM node:${NODE_VERSION}-slim AS node_builder
 FROM base AS gem_builder
 WORKDIR /app
 
+ARG BUNDLER_VERSION
+
 # Bundlerを特定のバージョンでインストール
 RUN gem install bundler -v ${BUNDLER_VERSION}
 
@@ -42,6 +48,8 @@ RUN bundle install --jobs $(nproc) --retry 3
 # ------------------------------------------------------------------------------------
 FROM base AS assets_builder
 WORKDIR /app
+
+ARG NODE_VERSION
 
 # node_builderステージから、nodeとyarnの実行ファイルのみをコピー
 COPY --from=node_builder /usr/local/bin/node /usr/local/bin/
@@ -75,6 +83,11 @@ RUN bundle exec rails assets:precompile
 # ------------------------------------------------------------------------------------
 FROM base AS development
 WORKDIR /app
+
+ARG RUBY_VERSION
+ARG NODE_VERSION
+ARG BUNDLER_VERSION
+
 # 開発に必要なOSライブラリを追加 (curlなど)
 RUN apt-get update -qq && apt-get install -y --no-install-recommends curl nodejs npm && npm install -g yarn
 
@@ -105,6 +118,13 @@ RUN apt-get update -qq && \
 COPY --from=gem_builder /app/vendor/bundle /app/vendor/bundle
 COPY --from=assets_builder /app/public /app/public
 COPY . .
+
+# エントリーポイントスクリプトを実行可能にする
+COPY bin/entrypoint.sh /usr/bin/
+RUN chmod +x /usr/bin/entrypoint.sh
+
+# コンテナ起動時に、まず entrypoint.sh を実行するように設定
+ENTRYPOINT ["entrypoint.sh"]
 
 # 実行に必要な環境変数を設定
 ENV RAILS_ENV="production" \
