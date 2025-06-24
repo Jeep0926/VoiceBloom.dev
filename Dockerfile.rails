@@ -50,6 +50,8 @@ FROM base AS assets_builder
 WORKDIR /app
 
 ARG NODE_VERSION
+ARG RAILS_MASTER_KEY
+ARG DATABASE_URL
 
 # node_builderステージから、nodeとyarnの実行ファイルのみをコピー
 COPY --from=node_builder /usr/local/bin/node /usr/local/bin/
@@ -71,11 +73,14 @@ COPY . .
 # アセットをプリコンパイル
 ENV RAILS_ENV="production"
 ENV SECRET_KEY_BASE_DUMMY=1
-RUN bundle exec rails assets:precompile
+
+# Renderの環境変数 (secrets) をビルド時に利用する
+RUN --mount=type=secret,id=rails_master_key,dst=/app/config/master.key \
+    SECRET_KEY_BASE_DUMMY=1 bundle exec rails assets:precompile
 
 
 # ------------------------------------------------------------------------------------
-# ステージ 5: development - 開発環境用ステージ (変更なし)
+# ステージ 5: development - 開発環境用ステージ
 # ------------------------------------------------------------------------------------
 FROM base AS development
 WORKDIR /app
