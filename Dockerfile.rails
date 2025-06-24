@@ -1,49 +1,75 @@
+# ------------------------------------------------------------------------------------
+# 引数定義 (ARG)
+# ------------------------------------------------------------------------------------
 ARG RUBY_VERSION=3.3.0
-ARG NODE_MAJOR=20
+ARG NODE_VERSION=20
+ARG BUNDLER_VERSION=2.5.3 # Bundlerのバージョンを固定して安定化
 
-# 1. ベースイメージ
+# ------------------------------------------------------------------------------------
+# ステージ 1: base - 全てのステージの基礎となるRuby環境
+# ------------------------------------------------------------------------------------
 FROM ruby:${RUBY_VERSION}-slim AS base
+
+# 基本的な環境変数を設定
 ENV LANG C.UTF-8
-ENV RAILS_ENV development
 ENV BUNDLE_PATH="vendor/bundle"
+ENV BUNDLE_WITHOUT="development:test"
 
-# 2. ビルドに必要なOSレベルの依存関係をインストールするステージ
-FROM base AS build_deps
+# OSパッケージを更新し、基本的なライブラリをインストール
+RUN apt-get update -qq && apt-get install -y --no-install-recommends build-essential git libpq-dev
 
-# 基本的な依存関係 + curl, gnupg, bash, ca-certificates をインストール
-RUN apt-get update -qq \
-    && apt-get install -y --no-install-recommends \
-       build-essential \
-       curl \
-       git \
-       gnupg \
-       libpq-dev \
-       bash \
-       ca-certificates
+# ------------------------------------------------------------------------------------
+# ステージ 2: gems - 本番用のgemをインストールする専用ステージ
+# ------------------------------------------------------------------------------------
+FROM base AS gems
+WORKDIR /app
 
-# NodeSource リポジトリを追加
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_MAJOR}.x | bash -
+# Bundlerを特定のバージョンでインストール
+RUN gem install bundler -v ${BUNDLER_VERSION}
 
-# ★★★ リポジトリ追加後にパッケージリストを更新 ★★★
-RUN apt-get update -qq
+# Gemfileをコピーして、本番用のgemのみをインストール
+COPY Gemfile Gemfile.lock ./
+RUN bundle install --jobs $(nproc) --retry 3
 
-# ★★★ nodejs と npm を明示的にインストール ★★★
-RUN apt-get install -y --no-install-recommends nodejs npm
+# ------------------------------------------------------------------------------------
+# ステージ 3: assets_builder - 本番用アセットをビルドする専用ステージ
+# ------------------------------------------------------------------------------------
+FROM base AS assets_builder
+WORKDIR /app
 
-# ★★★ バージョンを確認してインストールされたかチェック ★★★
-RUN node -v
-RUN npm -v
+# 1. Node.js環境をセットアップ
+#    Node.js公式イメージを一時的に利用して、Node.jsとYarnをコピー
+FROM node:${NODE_VERSION}-slim AS node_builder
+COPY --from=node_builder /usr/local/bin/node /usr/local/bin/
+COPY --from=node_builder /opt/yarn-v* /opt/yarn
+RUN ln -s /opt/yarn/bin/yarn /usr/local/bin/yarn && \
+    ln -s /opt/yarn/bin/yarnpkg /usr/local/bin/yarnpkg
 
-# yarn をインストール
+# 2. 必要なファイルをコピー
+COPY . .
+
+# 3. gemとnpmパッケージをインストール
+COPY --from=gems /app/vendor/bundle /app/vendor/bundle
+RUN yarn install --frozen-lockfile
+
+# 4. アセットをプリコンパイル
+#    本番用の環境変数を設定
+ENV RAILS_ENV="production"
+#    ダミーのキーを設定してビルドを通過させる
+ENV SECRET_KEY_BASE_DUMMY=1
+RUN bundle exec rails assets:precompile
+
+# ------------------------------------------------------------------------------------
+# ステージ 4: development - 開発環境用ステージ
+# ------------------------------------------------------------------------------------
+FROM base AS development
+WORKDIR /app
+
+# 開発に必要なOSライブラリを追加
+RUN apt-get update -qq && apt-get install -y --no-install-recommends nodejs npm
 RUN npm install -g yarn
 
-# クリーンアップ
-RUN rm -rf /var/lib/apt/lists/*
-
-# 3. 開発用ステージ
-FROM build_deps AS development
-WORKDIR /app
-# Gemfile* を先にコピーして bundle install を実行（キャッシュ効率化のため）
+# Gemfileをコピーして、全てのgemをインストール
 COPY Gemfile Gemfile.lock ./
 ENV BUNDLE_WITHOUT=""
 RUN bundle install --jobs $(nproc) --retry 3
@@ -54,72 +80,29 @@ RUN yarn install
 
 # アプリケーションコード全体をコピー
 COPY . .
-# このステージは ./bin/dev でRailsサーバーやJSビルドを起動する準備が整った状態
 
-# 4. 本番用Gemをインストールするステージ
-FROM build_deps AS bundle_install_production
-WORKDIR /app
-COPY Gemfile Gemfile.lock ./
-ENV BUNDLE_WITHOUT="development:test" \
-    BUNDLE_DEPLOYMENT="1" \
-    BUNDLE_PATH="vendor/bundle" \
-    BUNDLE_CLEAN="true"
-RUN bundle install --jobs $(nproc) --retry 3
-
-# 5. アセットをビルドするステージ
-FROM build_deps AS assets_builder
-WORKDIR /app
-COPY . .
-COPY --from=bundle_install_production /app/vendor/bundle /app/vendor/bundle
-
-ENV RAILS_ENV="production"
-
-# ビルドを通過させるためのダミーを設定
-ENV CLOUDFLARE_ACCOUNT_ID="dummy-account-id"
-ENV CLOUDFLARE_ACCESS_KEY_ID="dummy-key-id"
-ENV CLOUDFLARE_SECRET_ACCESS_KEY="dummy-secret"
-ENV CLOUDFLARE_BUCKET_NAME="dummy-bucket"
-
-# アセットプリコンパイル（TailwindCSSビルドも含むことを期待、または個別に実行）
-# 実行権限をbin/railsに付与
-RUN chmod +x bin/rails
-
-# Node.js パッケージをインストール
-RUN yarn install
-
-# TailwindCSS をビルド
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails tailwindcss:build
-
-# JavaScript をバンドル
-RUN yarn build
-
-# アセットプリコンパイル
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
-
-# 6. 最終的な実行イメージステージ
+# ------------------------------------------------------------------------------------
+# ステージ 5: final - 最終的な本番実行イメージ
+# ------------------------------------------------------------------------------------
 FROM base AS final
 WORKDIR /app
 
-# 実行に必要な環境変数を設定
-ENV RAILS_ENV="production" \
-    BUNDLE_PATH="vendor/bundle" \
-    RAILS_LOG_TO_STDOUT="true" \
-    RAILS_SERVE_STATIC_FILES="true"
-    # PORT は Render が自動で設定するので、ここでは不要なことが多い
-
 # 実行に必要な最小限のOSライブラリをインストール
-RUN apt-get update -qq \
-    && apt-get install -y --no-install-recommends \
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
        libpq5 \
+       # もし画像処理などで他のライブラリが必要ならここに追加 (例: libvips)
     && rm -rf /var/lib/apt/lists/*
 
-# assets_builderステージから、インストール済みのGem、アプリケーションコード、ビルド済みアセットをコピー
-COPY --from=assets_builder /app/vendor/bundle /app/vendor/bundle
-COPY --from=assets_builder /app /app
+# gemsステージとassets_builderステージから必要なファイルのみをコピー
+COPY --from=gems /app/vendor/bundle /app/vendor/bundle
+COPY --from=assets_builder /app/public/assets /app/public/assets
+COPY . .
 
-# bin/rails と bin/bundle に実行権限を付与 (COPYで権限が失われることがあるため)
-RUN chmod +x /app/bin/rails
+# 実行に必要な環境変数を設定
+ENV RAILS_ENV="production" \
+    RAILS_LOG_TO_STDOUT="true" \
+    RAILS_SERVE_STATIC_FILES="true"
 
 EXPOSE 3000
-# CMD は fly.toml または Render の Start Command で指定される
 CMD ["bundle", "exec", "puma", "-C", "config/puma.rb"]
