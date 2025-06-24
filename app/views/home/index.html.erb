@@ -27,7 +27,10 @@
         <h2 class="text-xl font-semibold text-gray-700">発声練習</h2>
       </div>
       <p class="text-center text-gray-600 mb-4">様々なお題で発声練習を行い<br>あなたの声を開花させていきましょう！</p>
-      <%= button_to '発声練習を始める', practice_session_logs_path, method: :post, class: "w-full text-center px-6 py-3 text-base font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
+      <%# `button_to` から `link_to` に変更し、遷移先をメニュー一覧ページにする %>
+      <%= link_to '発声練習メニューへ',
+                  practice_menus_path,
+                  class: "block w-full text-center px-6 py-3 text-base font-semibold text-white bg-purple-600 rounded-lg shadow-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 ease-in-out" %>
     </div>
   </div>
 </div>
