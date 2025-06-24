@@ -1,0 +1,30 @@
+<% content_for :header_title, "発声練習メニュー一覧" %>
+
+<div class="px-4 py-4 space-y-6">
+  <%# --- おすすめトレーニング --- %>
+  <section>
+    <h2 class="text-xl font-bold text-gray-800 mb-4">おすすめトレーニング</h2>
+    <div class="flex space-x-4 overflow-x-auto -mx-4 px-4 pb-2">
+      <%# MVPでは「日常会話」カテゴリのみ表示 %>
+      <%# `each_with_index` を使って、ループのインデックス(0, 1, 2...)を取得する %>
+      <% @recommended_categories.each_with_index do |category, index| %>
+        <% exercises_in_category = @exercises_by_category[category] %>
+        <%# render 時に、ローカル変数 `index:` としてインデックスの値をパーシャルに渡す %>
+        <%= render 'practice_menus/recommended_card', category: category, exercises: exercises_in_category, index: index %>
+        <%# 将来的に他のカテゴリを追加する場合は、ここにダミーカードなどを追加 %>
+        <%# render 'practice_menus/recommended_card', category: '朝のウォームアップ', exercises: [], gradient: "from-blue-500 to-cyan-400" %>
+        <%# render 'practice_menus/recommended_card', category: '滑舌チャレンジ', exercises: [], gradient: "from-purple-500 to-pink-400" %>
+      <% end %>
+    </div>
+  </section>
+
+  <%# --- エクササイズ一覧 --- %>
+  <section>
+    <h2 class="text-xl font-bold text-gray-800 mb-4">エクササイズ一覧</h2>
+    <div class="space-y-3">
+      <% @exercises_by_category.each do |category, exercises| %>
+        <%= render 'practice_menus/exercise_list', category: category, exercises: exercises %>
+      <% end %>
+    </div>
+  </section>
+</div>

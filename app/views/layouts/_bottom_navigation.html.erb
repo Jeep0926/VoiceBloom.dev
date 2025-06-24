@@ -9,8 +9,8 @@
   <% end %>
 
   <%# 発声練習へのリンク %>
-  <%# 将来的な機能のため、パスは '#' にしておく %>
-  <%= link_to '#', class: "flex flex-col items-center justify-center w-full h-full #{bottom_nav_class('#')}" do %>
+  <%# リンク先を practice_menus_path に変更し、ヘルパーに 'practice_menus' コントローラーを渡す %>
+  <%= link_to practice_menus_path, class: "flex flex-col items-center justify-center w-full h-full #{bottom_nav_class(practice_menus_path, match_controllers: ['practice_menus'])}" do %>
     <%= inline_svg_tag 'mic.svg', class: "h-6 w-6 mb-1" %>
     <span class="text-xs">発声練習</span>
   <% end %>

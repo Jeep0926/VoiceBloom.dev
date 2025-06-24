@@ -1,0 +1,39 @@
+<%# ローカル変数: category, exercises %>
+<div class="bg-white rounded-lg shadow-md p-4">
+  <div class="flex justify-between items-start">
+    <div class="flex items-start">
+      <div class="w-10 h-10 flex items-center justify-center bg-[#8A4FFF]/10 rounded-full mr-3 flex-shrink-0">
+        <%= inline_svg_tag 'mic.svg', class: "h-6 w-6 text-[#8A4FFF]" %>
+      </div>
+      <div>
+        <p class="font-medium text-gray-800"><%= category %></p>
+        <p class="text-xs text-gray-500 mt-1"><%= exercises.first.title %></p>
+      </div>
+    </div>
+    <div class="ml-4">
+      <%= button_to '開始', 
+                    practice_session_logs_path(category: category), 
+                    method: :post,
+                    class: "bg-[#8A4FFF] text-white text-sm font-bold px-6 py-2.5 rounded-full whitespace-nowrap" %>
+    </div>
+  </div>
+
+  <div class="flex items-center mt-3 justify-between pl-14">
+    <div class="flex items-center text-xs text-gray-500 space-x-4">
+      <div class="flex items-center">
+        <%= inline_svg_tag 'timer.svg', class: "h-4 w-4 mr-1 text-gray-400" %>
+        <span><%= (exercises.sum(&:duration_minutes).to_f / exercises.count * 5).round %>分</span>
+      </div>
+      <div class="flex items-center">
+        <%= inline_svg_tag 'chart_bar.svg', class: "h-4 w-4 mr-1 text-gray-400" %>
+        <span><%= difficulty_level_text(exercises.first.difficulty_level) %></span>
+      </div>
+    </div>
+    <div class="flex items-center">
+      <div class="w-5 h-5 rounded-full bg-gray-200 flex items-center justify-center mr-1.5">
+        <span class="text-[10px] font-bold text-gray-600">--</span>
+      </div>
+      <span class="text-xs text-gray-500">未挑戦</span>
+    </div>
+  </div>
+</div>

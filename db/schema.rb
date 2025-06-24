@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_21_024356) do
+ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -65,6 +65,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_21_024356) do
     t.boolean "is_active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "duration_minutes", default: 1, null: false
     t.index ["is_active", "category"], name: "index_practice_exercises_on_is_active_and_category"
     t.index ["title"], name: "index_practice_exercises_on_title"
   end

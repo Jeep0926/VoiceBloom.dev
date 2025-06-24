@@ -10,8 +10,12 @@ class PracticeSessionLogsController < ApplicationController
   end
 
   def create
+    # パラメータからカテゴリを受け取る
+    category = params[:category]
     @practice_session_log = create_practice_session_log
-    first_exercise = find_first_exercise
+
+    # カテゴリに基づいて最初のお題を見つける
+    first_exercise = find_first_exercise(category)
 
     redirect_to_first_attempt_or_root(first_exercise)
   rescue ActiveRecord::RecordInvalid => e
@@ -24,8 +28,12 @@ class PracticeSessionLogsController < ApplicationController
     current_user.practice_session_logs.create!(session_started_at: Time.current)
   end
 
-  def find_first_exercise
-    PracticeExercise.where(is_active: true).order('RANDOM()').first
+  def find_first_exercise(category)
+    # 指定されたカテゴリのお題の中からランダムに1つ取得
+    # もしカテゴリが指定されていなければ、全てのお題からランダムに取得
+    scope = PracticeExercise.where(is_active: true)
+    scope = scope.where(category: category) if category.present?
+    scope.order('RANDOM()').first
   end
 
   def redirect_to_first_attempt_or_root(first_exercise)
@@ -47,10 +55,11 @@ class PracticeSessionLogsController < ApplicationController
   end
 
   def redirect_to_no_exercises_available
-    redirect_to root_path, alert: '現在、練習できるお題がありません。' # rubocop:disable Rails/I18nLocaleTexts
+    # 遷移元がメニュー一覧画面の場合、そこに戻すのが親切
+    redirect_back fallback_location: root_path, alert: '現在、練習できるお題がありません。' # rubocop:disable Rails/I18nLocaleTexts
   end
 
   def handle_create_error(exception)
-    redirect_to root_path, alert: "セッションの開始に失敗しました: #{exception.message}"
+    redirect_back fallback_location: root_path, alert: "セッションの開始に失敗しました: #{exception.message}"
   end
 end

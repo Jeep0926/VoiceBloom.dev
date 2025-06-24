@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
-  def bottom_nav_class(path)
-    if current_page?(path)
+  def bottom_nav_class(path, match_controllers: [])
+    # 現在のページのパスとリンク先のパスが一致するか、
+    # または、現在のコントローラー名が match_controllers 配列に含まれるか確認
+    if current_page?(path) || match_controllers.include?(controller_name)
       'text-purple-600 font-bold' # アクティブ時のCSSクラス
     else
       'text-gray-500 hover:text-purple-600' # 非アクティブ時のCSSクラス
@@ -21,6 +23,20 @@ module ApplicationHelper
 
       # アイコンとテキストを結合して返す
       svg_icon + content_tag(:span, 'ホームへ', class: 'text-sm font-medium ml-1')
+    end
+  end
+
+  # エクササイズ一覧のメタ情報で使う難易度表示ヘルパー
+  def difficulty_level_text(level)
+    case level
+    when 1
+      '初級'
+    when 2
+      '中級'
+    when 3
+      '上級'
+    else
+      '---'
     end
   end
 end

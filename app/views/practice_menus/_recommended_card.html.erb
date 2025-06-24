@@ -1,0 +1,38 @@
+<%# ローカル変数: category, exercises, index %>
+<%
+  # indexに応じてグラデーションの色を決定
+  gradients = [
+    "from-[#8A4FFF] to-[#FF7E5F]", # primary to secondary
+    "from-blue-500 to-cyan-400",
+    "from-purple-500 to-pink-400"
+  ]
+  gradient_class = gradients[index % gradients.length]
+%>
+
+<%= button_to practice_session_logs_path(category: category), 
+              method: :post,
+              # form_class: 外側の <form> タグに適用するクラス
+              form_class: "flex-shrink-0 w-64",
+              # class: 内側の <button> タグに適用するクラス
+              class: "w-full h-full bg-gradient-to-r #{gradient_class} rounded-xl shadow-md p-4 text-left text-white block hover:opacity-90 transition" do %>
+
+  <div class="flex items-center mb-2">
+    <div class="w-8 h-8 flex items-center justify-center bg-white/20 rounded-full mr-2">
+      <%# 見本では 'ri-mic-line' ですが、既存の mic.svg を使います %>
+      <%= inline_svg_tag 'mic.svg', class: "h-5 w-5 text-white" %>
+    </div>
+    <p class="font-medium"><%= category %></p>
+  </div>
+
+  <p class="text-xs text-white/80 mb-3 h-8"><%= exercises.first.title %></p>
+
+  <div class="flex justify-between items-center">
+    <div class="flex items-center text-xs text-white/80">
+      <%= inline_svg_tag 'timer.svg', class: "h-4 w-4 mr-1.5" %>
+      <span>約<%= (exercises.sum(&:duration_minutes).to_f / exercises.count * 5).round %>分</span>
+    </div>
+    <div class="bg-white/20 rounded-full px-2 py-0.5">
+      <span class="text-xs"><%= difficulty_level_text(exercises.first.difficulty_level) %></span>
+    </div>
+  </div>
+<% end %>

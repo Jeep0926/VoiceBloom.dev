@@ -69,6 +69,7 @@ practice_exercises_data = [
     category: '日常会話',
     difficulty_level: 1,
     is_active: true,
+    duration_minutes: 1,
     sample_audio_filename: '01_ohayougozaimasu.wav'
   },
   {
@@ -77,6 +78,7 @@ practice_exercises_data = [
     category: '日常会話',
     difficulty_level: 1,
     is_active: true,
+    duration_minutes: 1,
     sample_audio_filename: '02_konnichiwa.wav'
   },
   {
@@ -85,6 +87,7 @@ practice_exercises_data = [
     category: '日常会話',
     difficulty_level: 1,
     is_active: true,
+    duration_minutes: 1,
     sample_audio_filename: '03_arigatougozaimasu.wav'
   },
   {
@@ -93,6 +96,7 @@ practice_exercises_data = [
     category: '日常会話',
     difficulty_level: 1,
     is_active: true,
+    duration_minutes: 1,
     sample_audio_filename: '04_yoroshikuonegaishimasu.wav'
   },
   {
@@ -101,6 +105,7 @@ practice_exercises_data = [
     category: '日常会話',
     difficulty_level: 1,
     is_active: true,
+    duration_minutes: 1,
     sample_audio_filename: '05_otsukaresama.wav'
   }
 ]
