@@ -42,5 +42,4 @@ cloudflare:
   region: auto
   # この一行を追加して、SHA256チェックサムの生成を無効化する
   # R2は、一度に指定できるチェックサムは1種類だけのため
-  upload:
-    checksum_algorithm: false
+  compute_checksums: false
