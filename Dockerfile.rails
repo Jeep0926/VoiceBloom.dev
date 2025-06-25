@@ -73,6 +73,7 @@ ENV RAILS_ENV="production"
 
 # Renderの環境変数 (secrets) をビルド時に利用する
 RUN --mount=type=secret,id=RAILS_MASTER_KEY,dst=config/master.key \
+    --mount=type=secret,id=SECRET_KEY_BASE \
     --mount=type=secret,id=DATABASE_URL \
     --mount=type=secret,id=CLOUDFLARE_ACCOUNT_ID \
     --mount=type=secret,id=CLOUDFLARE_ACCESS_KEY_ID \
