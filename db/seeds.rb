@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+# 本番環境で、最初の練習問題が既に存在する場合は、このスクリプトの実行をここで終了する
+# これにより、db:seed コマンドが何度実行されてもデータが重複して作成されるのを防ぐ
+if Rails.env.production? && PracticeExercise.exists?(title: '朝のあいさつ')
+  puts "Practice exercises have already been seeded. Skipping."
+  return
+end
+
 # Returns the full path to the audio file for the given filename
 def audio_file_path(audio_filename)
   Rails.root.join('db', 'seeds', 'audio_samples', audio_filename)
