@@ -50,8 +50,6 @@ FROM base AS assets_builder
 WORKDIR /app
 
 ARG NODE_VERSION
-ARG RAILS_MASTER_KEY
-ARG DATABASE_URL
 
 # node_builderステージから、nodeとyarnの実行ファイルのみをコピー
 COPY --from=node_builder /usr/local/bin/node /usr/local/bin/
@@ -75,6 +73,11 @@ ENV RAILS_ENV="production"
 
 # Renderの環境変数 (secrets) をビルド時に利用する
 RUN --mount=type=secret,id=RAILS_MASTER_KEY,dst=config/master.key \
+    --mount=type=secret,id=DATABASE_URL \
+    --mount=type=secret,id=CLOUDFLARE_ACCOUNT_ID \
+    --mount=type=secret,id=CLOUDFLARE_ACCESS_KEY_ID \
+    --mount=type=secret,id=CLOUDFLARE_SECRET_ACCESS_KEY \
+    --mount=type=secret,id=CLOUDFLARE_BUCKET_NAME \
     bundle exec rails assets:precompile
 
 
