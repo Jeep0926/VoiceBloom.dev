@@ -72,6 +72,7 @@ COPY . .
 ENV RAILS_ENV="production"
 
 # Renderの環境変数 (secrets) をビルド時に利用する
+# マウントしたSecretファイルを読み込み、環境変数としてエクスポートしてからコマンドを実行
 RUN --mount=type=secret,id=RAILS_MASTER_KEY,dst=config/master.key \
     --mount=type=secret,id=SECRET_KEY_BASE \
     --mount=type=secret,id=DATABASE_URL \
@@ -79,6 +80,12 @@ RUN --mount=type=secret,id=RAILS_MASTER_KEY,dst=config/master.key \
     --mount=type=secret,id=CLOUDFLARE_ACCESS_KEY_ID \
     --mount=type=secret,id=CLOUDFLARE_SECRET_ACCESS_KEY \
     --mount=type=secret,id=CLOUDFLARE_BUCKET_NAME \
+    export SECRET_KEY_BASE=$(cat /run/secrets/SECRET_KEY_BASE) && \
+    export DATABASE_URL=$(cat /run/secrets/DATABASE_URL) && \
+    export CLOUDFLARE_ACCOUNT_ID=$(cat /run/secrets/CLOUDFLARE_ACCOUNT_ID) && \
+    export CLOUDFLARE_ACCESS_KEY_ID=$(cat /run/secrets/CLOUDFLARE_ACCESS_KEY_ID) && \
+    export CLOUDFLARE_SECRET_ACCESS_KEY=$(cat /run/secrets/CLOUDFLARE_SECRET_ACCESS_KEY) && \
+    export CLOUDFLARE_BUCKET_NAME=$(cat /run/secrets/CLOUDFLARE_BUCKET_NAME) && \
     bundle exec rails assets:precompile
 
 
