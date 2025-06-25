@@ -28,8 +28,8 @@ class FastApiAnalyzerService
       faraday.request :multipart
       faraday.request :url_encoded
       faraday.adapter Faraday.default_adapter
-      faraday.options.timeout = 20
-      faraday.options.open_timeout = 5
+      faraday.options.timeout = 60
+      faraday.options.open_timeout = 30
     end
   end
 
