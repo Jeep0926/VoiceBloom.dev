@@ -3,7 +3,7 @@
 # 本番環境で、最初の練習問題が既に存在する場合は、このスクリプトの実行をここで終了する
 # これにより、db:seed コマンドが何度実行されてもデータが重複して作成されるのを防ぐ
 if Rails.env.production? && PracticeExercise.exists?(title: '朝のあいさつ')
-  puts "Practice exercises have already been seeded. Skipping."
+  Rails.logger.info 'Practice exercises have already been seeded. Skipping.'
   return
 end
 
