@@ -88,7 +88,7 @@ def analyze_pitch_fast(y, sr):
         for frame in frames.T:
             # 各フレームで自己相関を計算
             autocorr = np.correlate(frame, frame, mode="full")
-            autocorr = autocorr[len(autocorr) // 2 :]
+            autocorr = autocorr[len(autocorr) // 2:]
 
             # 基本周波数の範囲を制限（50-400Hz）
             min_period = int(sr / 400)  # 最高周波数に対応する最小周期
