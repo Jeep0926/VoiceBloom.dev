@@ -5,7 +5,6 @@ import os
 import librosa
 import numpy as np
 import scipy.signal
-from scipy.stats import mode
 from schemas import VoiceFeaturesResponse
 
 app = FastAPI()
@@ -91,7 +90,7 @@ def analyze_pitch_fast(y, sr):
             autocorr = np.correlate(frame, frame, mode="full")
             autocorr = autocorr[len(autocorr) // 2 :]
 
-            # 基本周波数の範囲を制限（80-400Hz）
+            # 基本周波数の範囲を制限（50-400Hz）
             min_period = int(sr / 400)  # 最高周波数に対応する最小周期
             max_period = int(sr / 50)  # 最低周波数に対応する最大周期
 
@@ -143,8 +142,8 @@ def analyze_tempo_fast(y, sr, voice_segments):
         peaks, _ = scipy.signal.find_peaks(
             spectral_flux,
             height=np.max(spectral_flux) * 0.3,
-            distance=int(0.1 * sr / 512),
-        )  # 最小100ms間隔
+            distance=int(0.1 * sr / 512),  # 最小100ms間隔
+        )
 
         onset_count = len(peaks)
 
@@ -189,9 +188,8 @@ def analyze_volume_advanced(y, sr, voice_segments):
         b, a = scipy.signal.butter(2, [500, 2000], btype="band", fs=sr)
         filtered_audio = scipy.signal.filtfilt(b, a, voice_audio)
         lufs_rms = np.sqrt(np.mean(filtered_audio**2))
-        lufs = (
-            20 * np.log10(lufs_rms) - 0.691 if lufs_rms > 0 else None
-        )  # K-weighting近似
+        # K-weighting近似
+        lufs = 20 * np.log10(lufs_rms) - 0.691 if lufs_rms > 0 else None
 
         # 3. 動的レンジ (dB)
         percentile_95 = np.percentile(np.abs(voice_audio), 95)
@@ -216,7 +214,7 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
     temp_file_path = os.path.join(TEMP_AUDIO_DIR, filename)
 
     # コンテンツタイプのチェック
-    if file.content_type not in [
+    allowed_types = [
         "audio/wav",
         "audio/wave",
         "audio/x-wav",
@@ -224,7 +222,8 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         "audio/mp3",
         "audio/mp4",
         "audio/m4a",
-    ]:
+    ]
+    if file.content_type not in allowed_types:
         return VoiceFeaturesResponse(
             analysis_error_message=f"Unsupported file type: {file.content_type}"
         )
@@ -241,7 +240,9 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         # 10秒制限の確認
         if duration_seconds > 10:
             return VoiceFeaturesResponse(
-                analysis_error_message="Audio file too long. Maximum 10 seconds allowed."
+                analysis_error_message=(
+                    "Audio file too long. Maximum 10 seconds allowed."
+                )
             )
 
         # === 1. 音声区間検出（最も重要な前処理）===
@@ -256,12 +257,12 @@ async def analyze_voice_condition(file: Annotated[UploadFile, File()]):
         avg_pitch = analyze_pitch_fast(y, sr)
 
         # === 3. 高速テンポ分析 ===
-        avg_tempo, actual_speech_time, syllable_count = analyze_tempo_fast(
-            y, sr, voice_segments
-        )
+        tempo_result = analyze_tempo_fast(y, sr, voice_segments)
+        avg_tempo, actual_speech_time, syllable_count = tempo_result
 
         # === 4. 高度な音量分析 ===
-        dbfs, lufs, dynamic_range = analyze_volume_advanced(y, sr, voice_segments)
+        volume_result = analyze_volume_advanced(y, sr, voice_segments)
+        dbfs, lufs, dynamic_range = volume_result
 
         # === デバッグ情報 ===
         print("=== 音声分析結果 ===")
