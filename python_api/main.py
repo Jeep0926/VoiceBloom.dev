@@ -93,7 +93,7 @@ def analyze_pitch_fast(y, sr):
 
             # 基本周波数の範囲を制限（80-400Hz）
             min_period = int(sr / 400)  # 最高周波数に対応する最小周期
-            max_period = int(sr / 80)  # 最低周波数に対応する最大周期
+            max_period = int(sr / 50)  # 最低周波数に対応する最大周期
 
             if len(autocorr) > max_period:
                 # 指定範囲内でピークを検出
@@ -102,7 +102,7 @@ def analyze_pitch_fast(y, sr):
                     peak_idx = np.argmax(search_range) + min_period
                     if autocorr[peak_idx] > 0.3 * autocorr[0]:  # 閾値による有効性判定
                         f0 = sr / peak_idx
-                        if 80 <= f0 <= 400:
+                        if 50 <= f0 <= 400:
                             pitches.append(f0)
 
         return np.median(pitches) if pitches else None
