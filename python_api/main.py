@@ -142,7 +142,7 @@ def analyze_tempo_fast(y, sr, voice_segments):
         peaks, _ = scipy.signal.find_peaks(
             spectral_flux,
             height=np.max(spectral_flux) * 0.3,
-            distance=int(0.1 * sr / 512)  # 最小100ms間隔
+            distance=int(0.1 * sr / 512),
         )
 
         onset_count = len(peaks)
