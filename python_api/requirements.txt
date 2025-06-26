@@ -1,6 +1,9 @@
+
 fastapi
 uvicorn[standard]
 librosa
+scipy
+numpy
 flake8
 black
 pydantic
