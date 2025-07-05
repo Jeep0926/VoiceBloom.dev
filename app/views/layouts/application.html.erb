@@ -14,16 +14,22 @@
     <%= render "layouts/header" %>
 
     <%# フラッシュメッセージ %>
-    <div class="flash-messages container mx-auto px-5 mt-4">
-      <% if notice %>
-        <p class="notice bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative" role="alert">
-          <%= notice %>
-        </p>
-      <% end %>
-      <% if alert %>
-        <p class="alert bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-          <%= alert %>
-        </p>
+    <div class="flash-messages container mx-auto px-5 mt-4 space-y-2">
+      <% flash.each do |message_type, message| %>
+        <%# ★★★ ここを修正 ★★★ %>
+        <%# メッセージタイプに応じてCSSクラスを切り替える %>
+        <% alert_class = case message_type.to_s
+                         when 'notice', 'signed_out'
+                           "bg-purple-100 border-purple-400 text-purple-700"
+                         when 'alert', 'error', 'failure'
+                           "bg-red-100 border-red-400 text-red-700"
+                         else
+                           "bg-purple-100 border-purple-400 text-purple-700"
+                         end %>
+
+        <div class="<%= alert_class %> px-4 py-3 rounded relative" role="alert">
+          <%= message %>
+        </div>
       <% end %>
     </div>
 
