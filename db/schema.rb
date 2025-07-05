@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_05_052646) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -42,6 +42,15 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "character_images", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "expression", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "expression"], name: "index_character_images_on_user_id_and_expression", unique: true
+    t.index ["user_id"], name: "index_character_images_on_user_id"
+  end
+
   create_table "practice_attempt_logs", force: :cascade do |t|
     t.bigint "practice_session_log_id", null: false
     t.bigint "practice_exercise_id", null: false
@@ -66,6 +75,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "duration_minutes", default: 1, null: false
+    t.boolean "is_for_onboarding", default: false, null: false
     t.index ["is_active", "category"], name: "index_practice_exercises_on_is_active_and_category"
     t.index ["title"], name: "index_practice_exercises_on_title"
   end
@@ -98,6 +108,10 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
     t.datetime "discarded_at"
     t.integer "gender", default: 0, null: false
     t.integer "total_practice_sessions_count", default: 0, null: false
+    t.integer "onboarding_status", default: 0, null: false
+    t.float "baseline_pitch"
+    t.float "baseline_tempo"
+    t.float "baseline_volume"
     t.index ["discarded_at"], name: "index_users_on_discarded_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
@@ -120,6 +134,7 @@ ActiveRecord::Schema[7.2].define(version: 2025_06_23_071949) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "character_images", "users"
   add_foreign_key "practice_attempt_logs", "practice_exercises"
   add_foreign_key "practice_attempt_logs", "practice_session_logs"
   add_foreign_key "practice_attempt_logs", "users"
