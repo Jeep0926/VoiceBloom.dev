@@ -21,7 +21,7 @@ class User < ApplicationRecord
   # enum を使って gender の値をシンボルで扱えるようにする
   enum :gender, { unset: 0, male: 1, female: 2, other: 3 }
 
-  enum onboarding_status: {
+  enum :onboarding_status, {
     not_started: 0, # 未開始 (デフォルト)
     in_progress: 1, # 進行中
     completed: 2,   # 完了
@@ -32,7 +32,7 @@ class User < ApplicationRecord
   # 意図しない値がデータベースに保存されるのを防ぐ。
   validates :gender, inclusion: { in: genders.keys }
   validates :onboarding_status, inclusion: { in: onboarding_statuses.keys }
-  
+
   # 練習セッション完了時にカウンターを更新するメソッド
   def update_practice_stats!(completed_session)
     # 更新対象の属性をハッシュで準備し、一度のDBアクセスで更新する
