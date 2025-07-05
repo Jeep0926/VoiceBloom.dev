@@ -12,7 +12,8 @@ class User < ApplicationRecord
   has_one_attached :profile_image
   has_many :voice_condition_logs, dependent: :destroy
   has_many :practice_session_logs, dependent: :destroy
-  has_many :practice_attempt_logs, dependent: :destroy # 直接持つ場合、またはセッション経由で持つ場合は不要
+  has_many :practice_attempt_logs, dependent: :destroy
+  has_many :character_images, dependent: :destroy
 
   # 論理削除したユーザーを検索対象に含めないため
   default_scope { kept }
@@ -20,9 +21,17 @@ class User < ApplicationRecord
   # enum を使って gender の値をシンボルで扱えるようにする
   enum :gender, { unset: 0, male: 1, female: 2, other: 3 }
 
+  enum :onboarding_status, {
+    not_started: 0, # 未開始 (デフォルト)
+    in_progress: 1, # 進行中
+    completed: 2,   # 完了
+    skipped: 3      # スキップ
+  }
+
   # gender に保存される値が、enum で定義したキー ("unset", "male", "female", "other") のいずれかであることを保証。
   # 意図しない値がデータベースに保存されるのを防ぐ。
   validates :gender, inclusion: { in: genders.keys }
+  validates :onboarding_status, inclusion: { in: onboarding_statuses.keys }
 
   # 練習セッション完了時にカウンターを更新するメソッド
   def update_practice_stats!(completed_session)
