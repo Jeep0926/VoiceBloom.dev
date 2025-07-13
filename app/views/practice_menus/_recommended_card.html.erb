@@ -11,6 +11,7 @@
 
 <%= button_to practice_session_logs_path(category: category), 
               method: :post,
+              data: { turbo: false },
               # form_class: 外側の <form> タグに適用するクラス
               form_class: "flex-shrink-0 w-64",
               # class: 内側の <button> タグに適用するクラス

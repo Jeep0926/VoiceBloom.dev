@@ -25,15 +25,28 @@ class PracticeSessionLogsController < ApplicationController
   private
 
   def create_practice_session_log
-    current_user.practice_session_logs.create!(session_started_at: Time.current)
+    current_user.practice_session_logs.create!(
+      session_started_at: Time.current,
+      # 「app/models/practice_session_log.rb」で、「session_type」属性に enum で定義
+      # normal_practice（通常の練習）か onboarding のどちらかの値を持つことがバリデーションで必須としているため
+      session_type: 'normal_practice' # "通常の練習"セッションであることを明記
+    )
   end
 
   def find_first_exercise(category)
-    # 指定されたカテゴリのお題の中からランダムに1つ取得
-    # もしカテゴリが指定されていなければ、全てのお題からランダムに取得
-    scope = PracticeExercise.where(is_active: true)
-    scope = scope.where(category: category) if category.present?
-    scope.order('RANDOM()').first
+    # scope を is_active: true, is_for_onboarding: false に限定
+    base_scope = PracticeExercise.where(is_active: true, is_for_onboarding: false)
+
+    # もしカテゴリが指定されていれば、そのカテゴリのお題を全て取得
+    if category.present?
+      exercises_in_category = base_scope.where(category: category)
+      # そのカテゴリにお題が存在すれば、その中からランダムに1つ返す
+      return exercises_in_category.order('RANDOM()').first if exercises_in_category.exists?
+    end
+
+    # カテゴリが指定されていない、または指定されたカテゴリにお題がなかった場合、
+    # 全ての通常練習用のお題からランダムに1つ返す
+    base_scope.order('RANDOM()').first
   end
 
   def redirect_to_first_attempt_or_root(first_exercise)
