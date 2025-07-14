@@ -4,6 +4,14 @@ class PracticeSessionLog < ApplicationRecord
   belongs_to :user
   has_many :practice_attempt_logs, dependent: :destroy # 1つのセッションは多数の試行ログを持つ
 
+  # session_type カラムを enum として定義
+  enum :session_type, {
+    normal_practice: 'normal_practice', # 通常の練習
+    onboarding: 'onboarding'            # オンボーディング
+  }
+
+  validates :session_type, inclusion: { in: session_types.keys }
+
   # --- session_started_at のバリデーション ---
   # DBで NOT NULL 制約をかけたので、モデルでも presence を検証
   validates :session_started_at, presence: true

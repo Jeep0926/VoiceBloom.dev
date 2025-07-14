@@ -138,3 +138,66 @@ practice_exercises_data.each do |exercise_data|
 end
 
 Rails.logger.info('Finished seeding PracticeExercises.')
+
+Rails.logger.info('Seeding Onboarding PracticeExercises...')
+
+# is_for_onboarding: true を持つお題が既に存在すればスキップ
+return if PracticeExercise.exists?(is_for_onboarding: true)
+
+onboarding_exercises_data = [
+  {
+    title: 'オンボーディング用：平坦なトーンの文章',
+    text_content: 'この音声は、あなたの声の状態を測定するために録音されています。',
+    category: 'オンボーディング',
+    difficulty_level: 1,
+    is_active: true,
+    is_for_onboarding: true, # オンボーディング用フラグ
+    duration_minutes: 1,
+    sample_audio_filename: 'onboarding_01.wav' # 仮のファイル名
+  },
+  {
+    title: 'オンボーディング用：抑揚のある文章',
+    text_content: '空の青さ、海の広さ、山の緑。なんて素晴らしい一日でしょう！',
+    category: 'オンボーディング',
+    difficulty_level: 1,
+    is_active: true,
+    is_for_onboarding: true,
+    duration_minutes: 1,
+    sample_audio_filename: 'onboarding_02.wav'
+  },
+  {
+    title: 'オンボーディング用：少し長めの文章',
+    text_content: '朝の光が部屋に差し込み、新しい一日が始まります。今日も健やかに過ごしましょう。',
+    category: 'オンボーディング',
+    difficulty_level: 1,
+    is_active: true,
+    is_for_onboarding: true,
+    duration_minutes: 1,
+    sample_audio_filename: 'onboarding_03.wav'
+  }
+]
+
+# 上記で定義したヘルパーメソッドを再利用してデータを作成
+onboarding_exercises_data.each do |exercise_data|
+  audio_filename = exercise_data.delete(:sample_audio_filename)
+  exercise = PracticeExercise.find_or_initialize_by(title: exercise_data[:title])
+  exercise.assign_attributes(exercise_data)
+
+  # お手本音声ファイルは現時点では不要かもしれませんが、将来のために枠組みを残します
+  if audio_filename.present? && File.exist?(audio_file_path(audio_filename))
+    attach_audio_to_exercise(exercise,
+                             audio_filename)
+  end
+
+  if exercise.save
+    Rails.logger.info("Successfully seeded onboarding exercise: '#{exercise.title}'")
+  else
+    # 修正箇所: 長い行を読みやすくするために複数行に分割
+    Rails.logger.error(
+      "ERROR seeding onboarding exercise '#{exercise.title}': " \
+      "#{exercise.errors.full_messages.join(', ')}"
+    )
+  end
+end
+
+Rails.logger.info('Finished seeding Onboarding PracticeExercises.')

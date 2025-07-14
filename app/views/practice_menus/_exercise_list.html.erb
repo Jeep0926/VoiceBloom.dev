@@ -12,8 +12,9 @@
     </div>
     <div class="ml-4">
       <%= button_to '開始', 
-                    practice_session_logs_path(category: category), 
+                    practice_session_logs_path(category: category),
                     method: :post,
+                    data: { turbo: false },
                     class: "bg-[#8A4FFF] text-white text-sm font-bold px-6 py-2.5 rounded-full whitespace-nowrap" %>
     </div>
   </div>

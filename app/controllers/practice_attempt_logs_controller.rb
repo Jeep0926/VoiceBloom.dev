@@ -130,8 +130,9 @@ class PracticeAttemptLogsController < ApplicationController
   # 次に挑戦するエクササイズを取得
   def fetch_next_exercise(session)
     attempted_ids = session.practice_attempt_logs.pluck(:practice_exercise_id).compact
-    PracticeExercise.where(is_active: true)
-                    .where.not(id: attempted_ids)
+    # オンボーディング用のお題は除外する
+    PracticeExercise.where(is_active: true, is_for_onboarding: false)
+                    .where.not(id: attempted_ids) # そのセッションで、まだ出題されていないお題
                     .order('RANDOM()')
                     .first
   end

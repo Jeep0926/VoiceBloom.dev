@@ -1,29 +1,26 @@
 <%# ヘッダーに表示する動的なタイトルを設定 %>
 <% content_for :header_title do %>
-  発声練習 <%= @practice_attempt_log.attempt_number %> / 5
+  声キャラ作成 <%= @practice_attempt_log.attempt_number %> / 3
 <% end %>
 
 <%# --- メインコンテンツ --- %>
-<%# Stimulusコントローラーのコンテナをここに統合 %>
 <div class="container mx-auto px-4 py-4 max-w-sm"
      data-controller="web-audio-recorder"
-     data-web-audio-recorder-post-url-value="<%= practice_session_log_practice_attempt_logs_path(@practice_session_log) %>"
+     data-web-audio-recorder-post-url-value="<%= onboarding_session_attempt_path(@onboarding_session, @current_step) %>"
      data-web-audio-recorder-form-field-name-value="practice_attempt_log[recorded_audio]"
-     data-web-audio-recorder-send-phrase-snapshot-value="false"
      data-web-audio-recorder-attempt-number-value="<%= @practice_attempt_log.attempt_number %>"
-     data-web-audio-recorder-finish-url-value="<%= practice_session_log_path(@practice_session_log) %>"
-     data-web-audio-recorder-exercise-id-value="<%= @practice_exercise.id %>"
-     data-web-audio-recorder-total-steps-value="5"
-     data-web-audio-recorder-finish-button-text-value="結果をみる">
+     data-web-audio-recorder-total-steps-value="3"
+     data-web-audio-recorder-finish-button-text-value="あなたの声キャラを確認する"
+     data-web-audio-recorder-exercise-id-value="<%= @practice_exercise.id %>">
 
   <%# --- プログレスバー --- %>
   <div class="w-full bg-gray-200 rounded-full h-1.5 mb-6">
-    <div class="bg-purple-600 h-1.5 rounded-full" style="width: <%= (@practice_attempt_log.attempt_number.to_f / 5) * 100 %>%"></div>
+    <div class="bg-purple-600 h-1.5 rounded-full" style="width: <%= (@practice_attempt_log.attempt_number.to_f / 3) * 100 %>%"></div>
   </div>
 
   <%# --- お題カード --- %>
   <div class="bg-white rounded-2xl shadow p-6 mb-8 text-center">
-    <h2 class="text-sm text-gray-500 mb-2">お題</h2>
+    <h2 class="text-sm text-gray-500 mb-2">お題 <%= @practice_attempt_log.attempt_number %></h2>
     <p id="current-phrase" class="text-2xl font-bold text-gray-800 mb-4"><%= @practice_exercise.text_content %></p>
     
     <% if @practice_exercise.sample_audio.attached? %>
@@ -42,8 +39,6 @@
   </div>
 
   <%# --- 録音機能セクション (共通パーシャルを呼び出す) --- %>
-  <%= render 'shared/recorder_ui',
-             post_url: practice_session_log_practice_attempt_logs_path(@practice_session_log),
-             form_field_name: 'practice_attempt_log[recorded_audio]',
-             attempt_log: @practice_attempt_log %>
+  <%# このパーシャルは録音UIのみを提供し、データ送信は親要素のdata-post-url-valueに従う %>
+  <%= render 'shared/recorder_ui' %>
 </div>

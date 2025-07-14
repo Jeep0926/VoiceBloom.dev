@@ -1,8 +1,7 @@
-// app/javascript/controllers/web_audio_recorder_controller.js
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  // 1. デザインに合わせてターゲットを追加
+  // デザインに合わせてターゲットを追加
   static targets = [
     "startButton",          // 「録音を開始する」ボタン
     "stopButton",           // 「録音を停止する」ボタン
@@ -19,14 +18,18 @@ export default class extends Controller {
     "finishButton"          // 「結果をみる」ボタン
   ]
 
-  // 2. ビューから値を受け取るためのValueを追加
+  // ビューから値を受け取るためのValueを追加
   static values = {
     postUrl: String,           // データの送信先URL
     formFieldName: String,     // フォームデータに含める音声データのキー名
     sendPhraseSnapshot: { type: Boolean, default: true }, // デフォルトは送信する
     exerciseId: String,     // お題のID（フォームデータ作成時に2問目以降が表示されるために必要）
     attemptNumber: Number,
-    finishUrl: String
+    finishUrl: String,
+    // セッションの総問題数をビューから受け取る (デフォルトは5問)
+    totalSteps: { type: Number, default: 5 },
+    // 最終ボタンのテキストをビューから受け取る (デフォルトは「結果をみる」)
+    finishButtonText: { type: String, default: "結果をみる" }
   }
 
   // --- プロパティの初期化 ---
@@ -46,14 +49,18 @@ export default class extends Controller {
 
   // --- Stimulusコントローラー接続時の処理 ---
   connect() {
-    console.log("WebAudioRecorderController connected!");
     this.resetUI(); // 初期UI表示を確実にする
+
+    // 最終ボタンが存在すれば、そのテキストをビューから渡された値で設定する
+    if (this.hasFinishButtonTarget) {
+      this.finishButtonTarget.textContent = this.finishButtonTextValue;
+    }
 
     // お手本音声プレイヤーの再生・停止イベントを監視してボタンのテキストを更新
     if (this.hasSampleAudioPlayerTarget) {
       this.sampleAudioPlayerTarget.onplay = () => {
         this.isSamplePlaying = true;
-        // ★ 修正：ターゲット名が sampleAudioButtonTarget なので、プロパティも合わせる
+        // ターゲット名が sampleAudioButtonTarget なので、プロパティも合わせる
         if (this.hasSampleAudioButtonTarget) {
           this.sampleAudioButtonTarget.innerHTML = `
             <span class="inline-flex items-center justify-center">
@@ -65,7 +72,7 @@ export default class extends Controller {
       };
       this.sampleAudioPlayerTarget.onpause = () => {
         this.isSamplePlaying = false;
-        // ★ 修正：ターゲット名が sampleAudioButtonTarget なので、プロパティも合わせる
+        // 修正：ターゲット名が sampleAudioButtonTarget なので、プロパティも合わせる
         if (this.hasSampleAudioButtonTarget) {
           this.sampleAudioButtonTarget.innerHTML = `
             <span class="inline-flex items-center justify-center">
@@ -133,7 +140,7 @@ export default class extends Controller {
     }, 1000);
   }
 
-  // ★ 5. 録音開始・停止処理にUI更新ロジックを統合
+  // 録音開始・停止処理にUI更新ロジックを統合
   async startRecording() {
     if (this.isRecording || this.isSamplePlaying) return; // お手本再生中も録音開始しない
 
@@ -221,7 +228,7 @@ export default class extends Controller {
     }, 200);
   }
 
-  // ★ 6. データ送信ロジックを汎用化
+  // データ送信ロジックを汎用化
   async sendAudioData(blob) {
     if (!this.hasPostUrlValue || !this.hasFormFieldNameValue) {
       console.error("送信先URLまたはフォーム名が設定されていません。"); this.resetUI(); return;
@@ -249,7 +256,7 @@ export default class extends Controller {
     try {
       const response = await fetch(this.postUrlValue, {
         method: "POST",
-        headers: { "X-CSRF-Token": csrfToken, "Accept": "application/json" }, 
+        headers: { "X-CSRF-Token": csrfToken, "Accept": "application/json" },
         body: formData
       });
       const data = await response.json();
@@ -259,18 +266,23 @@ export default class extends Controller {
         if (data.redirect_url) {
           // 声のコンディション確認機能の場合：リダイレクト先URLが返ってくる
           window.location.href = data.redirect_url;
-        } else if (data.result_html) {
-          // 発声練習機能の場合：結果表示用のHTMLが返ってくる
+        } else if (data.next_action) {
+          // 発声練習機能、または「声キャラ」作成の場合：結果表示用のHTMLが返ってくる
           this.recorderTarget.classList.add("hidden");
-          this.resultTarget.innerHTML = data.result_html;
+          // オンボーディングでは result_html は空だが、念のため代入しておく
+          this.resultTarget.innerHTML = data.result_html || '';
           this.resultTarget.classList.remove("hidden");
 
-          if (data.next_action.button_type === 'next') {
-            this.nextButtonTarget.href = data.next_action.url;
-            this.nextButtonTarget.classList.remove('hidden');
-          } else if (data.next_action.button_type === 'finish') {
+          // 進行ボタンの表示判定ロジック
+          // 現在の試行回数が、設定された総ステップ数以上かどうかで判定
+          if (this.attemptNumberValue >= this.totalStepsValue) {
+            // これが最後のステップだった場合
             this.finishButtonTarget.href = data.next_action.url;
             this.finishButtonTarget.classList.remove('hidden');
+          } else {
+            // まだ次のステップがある場合
+            this.nextButtonTarget.href = data.next_action.url;
+            this.nextButtonTarget.classList.remove('hidden');
           }
         }
       } else {

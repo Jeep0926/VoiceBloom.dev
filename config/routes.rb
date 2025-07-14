@@ -33,4 +33,15 @@ Rails.application.routes.draw do
 
   # 発声練習メニュー一覧ページ
   resources :practice_menus, only: [:index]
+
+  # 声キャラ作成（オンボーディングフロー）用のルート
+  namespace :onboarding do
+    # /onboarding/sessions/:session_id/attempts/:step のようなURLを生成
+    # セッションを特定するためにネストしている
+    resources :sessions, only: [:create] do
+      # createアクションも :step を受け取れるように個別にルートを定義します
+      get 'attempts/:step', to: 'attempts#show', as: :attempt
+      post 'attempts/:step', to: 'attempts#create'
+    end
+  end
 end
