@@ -2,6 +2,10 @@
 
 class VoiceConditionLog < ApplicationRecord
   belongs_to :user
+  # practice_session_log との関連付けを追加。この関連は必須ではないため optional: true
+  # practice_session_log_id が nil であってもバリデーションエラーにならないようにするため
+  belongs_to :practice_session_log, optional: true
+
   has_one_attached :recorded_audio # 録音された音声ファイルをアタッチする
 
   # 声のコンディションを記録する際、どのフレーズに対して録音・分析したのかという情報は
