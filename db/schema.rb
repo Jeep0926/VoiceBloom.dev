@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2025_07_06_110403) do
+ActiveRecord::Schema[7.2].define(version: 2025_07_15_052223) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -130,6 +130,8 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_06_110403) do
     t.datetime "updated_at", null: false
     t.float "duration_seconds"
     t.text "analysis_error_message"
+    t.bigint "practice_session_log_id"
+    t.index ["practice_session_log_id"], name: "index_voice_condition_logs_on_practice_session_log_id"
     t.index ["user_id"], name: "index_voice_condition_logs_on_user_id"
   end
 
@@ -140,5 +142,6 @@ ActiveRecord::Schema[7.2].define(version: 2025_07_06_110403) do
   add_foreign_key "practice_attempt_logs", "practice_session_logs"
   add_foreign_key "practice_attempt_logs", "users"
   add_foreign_key "practice_session_logs", "users"
+  add_foreign_key "voice_condition_logs", "practice_session_logs"
   add_foreign_key "voice_condition_logs", "users"
 end

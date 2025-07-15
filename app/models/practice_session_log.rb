@@ -4,6 +4,9 @@ class PracticeSessionLog < ApplicationRecord
   belongs_to :user
   has_many :practice_attempt_logs, dependent: :destroy # 1つのセッションは多数の試行ログを持つ
 
+  # オンボーディングの際に、このセッションに紐づく VoiceConditionLog を管理するために追加
+  has_many :voice_condition_logs, dependent: :destroy
+
   # session_type カラムを enum として定義
   enum :session_type, {
     normal_practice: 'normal_practice', # 通常の練習
