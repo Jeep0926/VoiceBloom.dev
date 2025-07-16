@@ -9,9 +9,10 @@ if [ "$RAILS_ENV" = "production" ]; then
   # DB_RESETフラグが"true"の場合、DBをリセット
   if [ "$DB_RESET" = "true" ]; then
     echo ">>> Resetting database based on DB_RESET flag..."
-    # このコマンドがDBのdrop, create, schema:load, seedを実行
+
     # Railsの安全装置をオフにするため、DISABLE_DATABASE_ENVIRONMENT_CHECK=1 を追加する
-    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rails db:reset
+    # db:purge: データベースは削除せず、中身（すべてのテーブル、データ）だけを完全に空にする
+    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rails db:purge db:migrate db:seed
     echo ">>> Database reset complete."
   # それ以外の場合は、通常のマイグレーションとseedを実行
   else
