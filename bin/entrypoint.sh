@@ -8,13 +8,16 @@ rm -f /app/tmp/pids/server.pid
 if [ "$RAILS_ENV" = "production" ]; then
   # DB_RESETフラグが"true"の場合、DBをリセット
   if [ "$DB_RESET" = "true" ]; then
-    echo ">>> Resetting database based on DB_RESET flag..."
+    echo ">>> Starting database reset in one-shot maintenance mode..."
 
-    # 1. まず、他の全ての接続を強制的に切断するタスクを実行
-    # 2. その後、安全にDBのリセット処理を実行
-    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rails db:disconnect_users db:purge db:migrate db:seed
+    # 接続の強制切断は権限上できないため、そのタスクは削除します。
+    # Webサーバーを起動しないため、接続の競合が起こらないことを期待します。
+    DISABLE_DATABASE_ENVIRONMENT_CHECK=1 bundle exec rails db:purge db:migrate db:seed
 
-    echo ">>> Database reset process finished."
+    echo ">>> Maintenance task finished. The container will now exit."
+    # ★★★ この行が最重要 ★★★
+    # Webサーバーを起動せずに、スクリプトを正常終了させる
+    exit 0
 
   # それ以外の場合は、通常のマイグレーションとseedを実行
   else
