@@ -1,20 +1,18 @@
 # frozen_string_literal: true
 
-class BaselineCalculationJob < ApplicationJob
+class CharacterGenerationJob < ApplicationJob
   queue_as :default
 
-  def perform(user_id, session_id)
+  def perform(user_id)
     user = User.find(user_id)
-    onboarding_session = PracticeSessionLog.find(session_id)
 
-    # ベースライン計算サービスを呼び出す
-    success = BaselineCalculatorService.new(user, onboarding_session).call
+    # キャラクター生成サービスを呼び出す
+    success = CharacterGeneratorService.new(user).call
 
     # サービスが失敗した場合はここで処理を終了する（ガード節）
-    # TODO: エラーハンドリング (例: ユーザーに通知を送るなど)
+    # TODO: エラーハンドリング
     return unless success
 
-    # 基準値の計算が成功したら、次にキャラクター生成ジョブを実行する
-    CharacterGenerationJob.perform_later(user.id)
+    # TODO: 成功したことをAction Cableでブラウザに通知する
   end
 end
