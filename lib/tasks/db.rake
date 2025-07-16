@@ -1,7 +1,7 @@
 namespace :db do
   desc "Disconnect all other users from the database. Necessary for operations like purge on Render."
   task :disconnect_users => :environment do
-    db_name = ActiveRecord::Base.connection_config[:database]
+    db_name = ActiveRecord::Base.connection_db_config.configuration_hash[:database]
     
     puts ">>> Forcibly disconnecting all other users from database '#{db_name}'..."
 
