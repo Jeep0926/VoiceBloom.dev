@@ -11,7 +11,7 @@ class CharacterGenerationJob < ApplicationJob
 
     # サービスが失敗した場合はここで処理を終了する（ガード節）
     # TODO: エラーハンドリング
-    return unless success
+    nil unless success
 
     # TODO: 成功したことをAction Cableでブラウザに通知する
   end

@@ -91,7 +91,7 @@ module Onboarding
       current_user.update!(onboarding_status: :completed)
 
       # 基準値計算ジョブを呼び出す
-      BaselineCalculationJob.perform_later(current_user.id, @onboarding_session.id)
+      BaselineCalculationJob.perform_later(current_user.id)
 
       # 将来の「処理中」ページへのリダイレクト情報を返す
       # 今の段階では、仮で学習記録画面へ
